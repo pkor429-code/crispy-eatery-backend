@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crispy Eatery - Kitchen</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #1a1510;
+    color: #f5f0e8;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    background: #2a2318;
+    border-bottom: 2px solid #b5753a;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: #e8c477;
+    letter-spacing: 1px;
+  }
+
+  .logo span {
+    font-weight: 400;
+    color: #c49a5c;
+    font-size: 14px;
+    margin-left: 10px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+  }
+
+  .stats {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
+
+  .stat {
+    text-align: center;
+    padding: 4px 14px;
+    background: #352c20;
+    border-radius: 8px;
+  }
+
+  .stat-num {
+    font-size: 24px;
+    font-weight: 700;
+    color: #e8c477;
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #a09080;
+    margin-top: 2px;
+  }
+
+  .status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 6px;
+    animation: pulse 2s infinite;
+  }
+
+  .status-dot.live { background: #4caf50; }
+  .status-dot.error { background: #f44336; animation: none; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .conn-status {
+    font-size: 12px;
+    color: #a09080;
+    display: flex;
+    align-items: center;
+  }
+
+  .orders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+    padding: 20px 24px;
+  }
+
+  .order-card {
+    background: #2a2318;
+    border-radius: 12px;
+    border: 1px solid #3d3428;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    animation: slideIn 0.4s ease;
+  }
+
+  .order-card.new-arrival {
+    border-color: #e8c477;
+    box-shadow: 0 0 20px rgba(232, 196, 119, 0.3);
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .order-card.done {
+    opacity: 0;
+    transform: scale(0.9);
+    transition: all 0.4s ease;
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    background: #352c20;
+  }
+
+  .table-badge {
+    background: #b5753a;
+    color: #fff;
+    font-size: 20px;
+    font-weight: 800;
+    padding: 6px 16px;
+    border-radius: 8px;
+    min-width: 56px;
+    text-align: center;
+  }
+
+  .order-meta {
+    text-align: right;
+  }
+
+  .order-id {
+    font-size: 11px;
+    color: #8a7a68;
+    font-family: monospace;
+  }
+
+  .order-time {
+    font-size: 18px;
+    font-weight: 600;
+    color: #e8c477;
+  }
+
+  .elapsed {
+    font-size: 12px;
+    color: #a09080;
+    margin-top: 2px;
+  }
+
+  .card-body {
+    padding: 14px 18px;
+  }
+
+  .item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 8px 0;
+    border-bottom: 1px solid #3d3428;
+  }
+
+  .item-row:last-child { border-bottom: none; }
+
+  .item-qty {
+    background: #4a3d2e;
+    color: #e8c477;
+    font-weight: 700;
+    min-width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    font-size: 14px;
+    margin-right: 10px;
+    flex-shrink: 0;
+  }
+
+  .item-name {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 500;
+    color: #f0e8d8;
+    line-height: 1.3;
+  }
+
+  .item-variant {
+    font-weight: 400;
+    color: #a09080;
+    font-size: 13px;
+  }
+
+  .item-notes {
+    font-size: 12px;
+    color: #e8a040;
+    font-style: italic;
+    margin-top: 3px;
+  }
+
+  .item-price {
+    color: #8a7a68;
+    font-size: 14px;
+    margin-left: 10px;
+    flex-shrink: 0;
+  }
+
+  .order-notes {
+    background: #3d3020;
+    border-left: 3px solid #e8a040;
+    padding: 8px 12px;
+    margin: 10px 0 4px;
+    border-radius: 0 6px 6px 0;
+    font-size: 13px;
+    color: #e8a040;
+  }
+
+  .card-footer {
+    padding: 12px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #3d3428;
+  }
+
+  .order-total {
+    font-size: 18px;
+    font-weight: 700;
+    color: #e8c477;
+  }
+
+  .btn-done {
+    background: #4caf50;
+    color: #fff;
+    border: none;
+    padding: 10px 28px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+  }
+
+  .btn-done:hover { background: #43a047; transform: scale(1.02); }
+  .btn-done:active { transform: scale(0.98); }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    color: #6a5a48;
+  }
+
+  .empty-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+
+  .empty-text {
+    font-size: 20px;
+    font-family: Georgia, serif;
+    font-style: italic;
+  }
+
+  .empty-sub {
+    font-size: 13px;
+    margin-top: 6px;
+    color: #5a4a38;
+  }
+
+  @keyframes flashBorder {
+    0%, 100% { border-color: #e8c477; }
+    50% { border-color: #ff9800; }
+  }
+
+  .order-card.flash {
+    animation: flashBorder 0.5s ease 3;
+  }
+
+  @media (max-width: 768px) {
+    .orders-grid {
+      grid-template-columns: 1fr;
+      padding: 12px;
+      gap: 12px;
+    }
+    header { padding: 12px 16px; flex-wrap: wrap; gap: 10px; }
+    .logo span { display: block; margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">Crispy Eatery <span>Kitchen</span></div>
+  </div>
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-num" id="activeCount">0</div>
+      <div class="stat-label">Active</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="doneCount">0</div>
+      <div class="stat-label">Done today</div>
+    </div>
+    <div class="conn-status">
+      <span class="status-dot live" id="statusDot"></span>
+      <span id="statusText">Live</span>
+    </div>
+  </div>
+</header>
+
+<main class="orders-grid" id="ordersGrid">
+  <div class="empty-state" id="emptyState">
+    <div class="empty-icon">&#127859;</div>
+    <div class="empty-text">No active orders</div>
+    <div class="empty-sub">New orders will appear here automatically</div>
+  </div>
+</main>
+
+<script>
+(function() {
+  var BACKEND = window.location.origin;
+  var POLL_INTERVAL = 3000;
+  var knownOrderIds = {};
+  var doneCount = 0;
+  var isFirstLoad = true;
+  var AudioCtx = window.AudioContext || window.webkitAudioContext;
+  var audioCtx = null;
+
+  function ensureAudio() {
+    if (!audioCtx) audioCtx = new AudioCtx();
+  }
+
+  function playChime() {
+    try {
+      ensureAudio();
+      var now = audioCtx.currentTime;
+      var freqs = [660, 880];
+      for (var i = 0; i < freqs.length; i++) {
+        var osc = audioCtx.createOscillator();
+        var gain = audioCtx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = freqs[i];
+        gain.gain.setValueAtTime(0.3, now + i * 0.15);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.15 + 0.5);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now + i * 0.15);
+        osc.stop(now + i * 0.15 + 0.6);
+      }
+    } catch(e) {
+      console.log("Audio not available");
+    }
+  }
+
+  function elapsed(iso) {
+    var diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+    if (diff < 60) return "just now";
+    var mins = Math.floor(diff / 60);
+    if (mins < 60) return mins + " min ago";
+    var hrs = Math.floor(mins / 60);
+    return hrs + "h " + (mins % 60) + "m ago";
+  }
+
+  function formatTime(iso) {
+    return new Date(iso).toLocaleTimeString("en-NZ", {
+      hour: "2-digit", minute: "2-digit", hour12: true
+    });
+  }
+
+  function countKnown() {
+    var c = 0;
+    for (var k in knownOrderIds) { if (knownOrderIds.hasOwnProperty(k)) c++; }
+    return c;
+  }
+
+  function renderCard(order) {
+    var itemsHtml = "";
+    for (var i = 0; i < order.items.length; i++) {
+      var item = order.items[i];
+      var variant = item.size ? '<span class="item-variant"> &middot; ' + item.size + "</span>" : "";
+      var notes = item.notes ? '<div class="item-notes">' + item.notes + "</div>" : "";
+      itemsHtml += '<div class="item-row">' +
+        '<span class="item-qty">' + item.qty + "</span>" +
+        '<div class="item-name">' + item.name + variant + notes + "</div>" +
+        '<span class="item-price">$' + (item.price * item.qty).toFixed(2) + "</span>" +
+      "</div>";
+    }
+
+    var orderNotes = order.notes
+      ? '<div class="order-notes">' + order.notes + "</div>"
+      : "";
+
+    return '<div class="order-card" id="card-' + order.id + '" data-id="' + order.id + '">' +
+      '<div class="card-header">' +
+        '<div class="table-badge">T' + order.tableNumber + "</div>" +
+        '<div class="order-meta">' +
+          '<div class="order-id">' + order.id + "</div>" +
+          '<div class="order-time">' + formatTime(order.createdAt) + "</div>" +
+          '<div class="elapsed" data-created="' + order.createdAt + '">' + elapsed(order.createdAt) + "</div>" +
+        "</div>" +
+      "</div>" +
+      '<div class="card-body">' + itemsHtml + orderNotes + "</div>" +
+      '<div class="card-footer">' +
+        '<div class="order-total">$' + order.total.toFixed(2) + "</div>" +
+        '<button class="btn-done" onclick="markDone(\'' + order.id + '\')">' + "DONE</button>" +
+      "</div>" +
+    "</div>";
+  }
+
+  window.markDone = function(orderId) {
+    var card = document.getElementById("card-" + orderId);
+    if (card) card.classList.add("done");
+
+    fetch(BACKEND + "/orders/" + orderId, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "done" })
+    }).catch(function(e) {
+      console.error("Failed to update order:", e);
+    });
+
+    setTimeout(function() {
+      if (card) card.remove();
+      delete knownOrderIds[orderId];
+      doneCount++;
+      updateStats();
+    }, 400);
+  };
+
+  function updateStats() {
+    document.getElementById("activeCount").textContent = countKnown();
+    document.getElementById("doneCount").textContent = doneCount;
+    document.getElementById("emptyState").style.display =
+      countKnown() === 0 ? "flex" : "none";
+  }
+
+  function pollOrders() {
+    fetch(BACKEND + "/orders")
+      .then(function(resp) { return resp.json(); })
+      .then(function(data) {
+        var active = [];
+        for (var i = 0; i < data.orders.length; i++) {
+          if (data.orders[i].status !== "done") active.push(data.orders[i]);
+        }
+        var hasNew = false;
+
+        for (var j = 0; j < active.length; j++) {
+          var order = active[j];
+          if (!knownOrderIds[order.id]) {
+            knownOrderIds[order.id] = true;
+            hasNew = true;
+
+            var grid = document.getElementById("ordersGrid");
+            var empty = document.getElementById("emptyState");
+            var temp = document.createElement("div");
+            temp.innerHTML = renderCard(order);
+            var card = temp.firstChild;
+
+            if (!isFirstLoad) {
+              card.classList.add("new-arrival", "flash");
+              setTimeout((function(c) { return function() { c.classList.remove("flash"); }; })(card), 1500);
+              setTimeout((function(c) { return function() { c.classList.remove("new-arrival"); }; })(card), 5000);
+            }
+
+            grid.insertBefore(card, grid.firstChild === empty ? empty : grid.firstChild);
+          }
+        }
+
+        var activeIds = {};
+        for (var k = 0; k < active.length; k++) { activeIds[active[k].id] = true; }
+        for (var id in knownOrderIds) {
+          if (knownOrderIds.hasOwnProperty(id) && !activeIds[id]) {
+            var el = document.getElementById("card-" + id);
+            if (el) el.remove();
+            delete knownOrderIds[id];
+            doneCount++;
+          }
+        }
+
+        if (hasNew && !isFirstLoad) {
+          playChime();
+        }
+
+        isFirstLoad = false;
+        document.getElementById("statusDot").className = "status-dot live";
+        document.getElementById("statusText").textContent = "Live";
+        updateStats();
+      })
+      .catch(function(e) {
+        console.error("Poll error:", e);
+        document.getElementById("statusDot").className = "status-dot error";
+        document.getElementById("statusText").textContent = "Offline";
+      });
+  }
+
+  function updateElapsed() {
+    var els = document.querySelectorAll(".elapsed[data-created]");
+    for (var i = 0; i < els.length; i++) {
+      els[i].textContent = elapsed(els[i].dataset.created);
+    }
+  }
+
+  document.addEventListener("click", function unlock() {
+    ensureAudio();
+    if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+    document.removeEventListener("click", unlock);
+  }, { once: true });
+
+  pollOrders();
+  setInterval(pollOrders, POLL_INTERVAL);
+  setInterval(updateElapsed, 30000);
+})();
+</script>
+
+</body>
+</html>
