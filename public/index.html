@@ -693,9 +693,16 @@
       // Show status badge
       const badge = card.querySelector('.status-badge');
       if (badge) badge.style.display = 'inline-block';
-      // Hide prep button
+      // Hide prep button, add ready button
       const prepBtn = card.querySelector('.btn-prep');
-      if (prepBtn) prepBtn.remove();
+      if (prepBtn) {
+        const readyBtn = document.createElement('button');
+        readyBtn.className = 'btn-ready';
+        readyBtn.textContent = 'READY';
+        readyBtn.onclick = function() { markReady(orderId); };
+        prepBtn.parentNode.insertBefore(readyBtn, prepBtn);
+        prepBtn.remove();
+      }
     }
 
     // Update local data
@@ -881,7 +888,14 @@
                 const badge = card.querySelector('.status-badge');
                 if (badge) { badge.style.display = 'inline-block'; badge.textContent = 'Preparing'; badge.style.background = '#ff9800'; }
                 const prepBtn = card.querySelector('.btn-prep');
-                if (prepBtn) prepBtn.remove();
+                if (prepBtn) {
+                  const readyBtn = document.createElement('button');
+                  readyBtn.className = 'btn-ready';
+                  readyBtn.textContent = 'READY';
+                  readyBtn.onclick = function() { window.markReady(order.id); };
+                  prepBtn.parentNode.insertBefore(readyBtn, prepBtn);
+                  prepBtn.remove();
+                }
               } else if (order.status === 'ready') {
                 card.classList.remove('preparing');
                 card.classList.add('ready');
