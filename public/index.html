@@ -243,6 +243,19 @@
     padding: 14px 18px;
   }
 
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 6px 0 4px;
+    margin-top: 4px;
+    border-top: 1px dashed #4a3d2e;
+    color: #ff9800;
+  }
+  .section-label:first-child { border-top: none; margin-top: 0; }
+  .section-label.barista { color: #64b5f6; }
+
   .item-row {
     display: flex;
     justify-content: space-between;
@@ -761,6 +774,22 @@
   const BACKEND = window.location.origin;
   const POLL_INTERVAL = 3000;
 
+  // ── Drink detection (barista items) ──
+  const DRINK_KEYWORDS = [
+    'flat white', 'long black', 'short black', 'americano', 'latte', 'cappuccino',
+    'mocha', 'espresso', 'macchiato', 'coffee', 'matcha', 'chai',
+    'tea', 'hot chocolate', 'turmeric', 'smoothie',
+    'iced auckland', 'iced ferrero', 'iced berry black', 'iced orange',
+    'iced mango', 'iced coconut', 'iced lychee', 'iced strawberry',
+    'iced tonic passion', 'iced yuzu', 'iced london fog', 'iced peach',
+    'iced bumblebee', 'milkshake'
+  ];
+
+  function isDrink(itemName) {
+    const lower = itemName.toLowerCase();
+    return DRINK_KEYWORDS.some(function(kw) { return lower.indexOf(kw) !== -1; });
+  }
+
   // ── State ──
   let knownOrderIds = new Set();
   let orderData = {};
@@ -819,15 +848,21 @@
     const isPreparing = order.status === 'preparing';
     const isReady = order.status === 'ready';
     const isPickedUp = order.status === 'picked_up';
-    const itemsHtml = order.items.map((item, idx) => {
+    // Split items into kitchen (food) and barista (drinks)
+    const kitchenIndices = [];
+    const baristaIndices = [];
+    order.items.forEach(function(item, idx) {
+      if (isDrink(item.name)) { baristaIndices.push(idx); }
+      else { kitchenIndices.push(idx); }
+    });
+
+    function renderItemRow(item, idx) {
       const variant = item.size ? '<span class="item-variant"> &middot; ' + item.size + '</span>' : '';
       const notes = item.notes ? '<div class="item-notes">' + item.notes + '</div>' : '';
-      // Preparing: cookable items with checkmarks
       const cookable = isPreparing ? ' cookable' : '';
       const cooked = (isPreparing && order.cookedItems && order.cookedItems[idx]) ? ' cooked' : '';
       const cookAction = isPreparing ? ' onclick="toggleItemCooked(\'' + order.id + '\',' + idx + ')"' : '';
       const cookCheck = isPreparing ? '<span class="cook-check">✓</span>' : '';
-      // Ready: tappable items for staff pickup
       const tappable = isReady ? ' tappable' : '';
       const picked = (isReady && order.pickedItems && order.pickedItems[idx]) ? ' picked' : '';
       const tapAction = isReady ? ' onclick="toggleItemPickup(\'' + order.id + '\',' + idx + ')"' : '';
@@ -837,7 +872,20 @@
         '<span class="item-price">$' + (item.price * item.qty).toFixed(2) + '</span>' +
         cookCheck +
       '</div>';
-    }).join('');
+    }
+
+    let itemsHtml = '';
+    const hasKitchen = kitchenIndices.length > 0;
+    const hasBarista = baristaIndices.length > 0;
+    if (hasKitchen && hasBarista) {
+      itemsHtml += '<div class="section-label">🍳 Kitchen</div>';
+      itemsHtml += kitchenIndices.map(function(idx) { return renderItemRow(order.items[idx], idx); }).join('');
+      itemsHtml += '<div class="section-label barista">☕ Barista</div>';
+      itemsHtml += baristaIndices.map(function(idx) { return renderItemRow(order.items[idx], idx); }).join('');
+    } else {
+      // All same type — no section headers needed
+      itemsHtml = order.items.map(function(item, idx) { return renderItemRow(item, idx); }).join('');
+    }
 
     // Cook progress hint shown when preparing
     let cookHint = '';
@@ -1082,6 +1130,13 @@
     const progText = card.querySelector('.cook-progress span');
     if (progText) progText.textContent = cookedCount + '/' + totalItems;
 
+    // Sync to server
+    fetch(BACKEND + '/orders/' + orderId, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'preparing', cookedItems: order.cookedItems })
+    }).catch(function(e) { console.error('Failed to sync cooked state:', e); });
+
     // If all items cooked, auto-advance to ready
     if (cookedCount === totalItems) {
       setTimeout(function() { markReady(orderId); }, 500);
@@ -1116,6 +1171,13 @@
 
     const progText = card.querySelector('.pickup-progress span');
     if (progText) progText.textContent = pickedCount + '/' + totalItems;
+
+    // Sync to server
+    fetch(BACKEND + '/orders/' + orderId, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'ready', pickedItems: order.pickedItems })
+    }).catch(function(e) { console.error('Failed to sync picked state:', e); });
 
     // If all items picked, auto-advance to picked_up status
     if (pickedCount === totalItems) {
@@ -1332,100 +1394,132 @@
 
           grid.insertBefore(card, grid.firstChild === empty ? empty : grid.firstChild);
         } else {
-          // Update status if changed server-side (e.g. another device marked preparing/ready)
-          if (orderData[order.id] && orderData[order.id].status !== order.status) {
-            orderData[order.id].status = order.status;
-            const card = document.getElementById('card-' + order.id);
-            if (card) {
-              // Clear all status classes first
-              card.classList.remove('preparing', 'ready', 'picked_up');
+          const localOrder = orderData[order.id];
+          if (!localOrder) return;
+          const statusChanged = localOrder.status !== order.status;
 
-              // Clean up any existing per-item UI before setting up new status
-              card.querySelectorAll('.item-row').forEach(function(row) {
-                row.classList.remove('cookable', 'cooked', 'tappable', 'picked');
-                row.onclick = null;
-                const check = row.querySelector('.cook-check');
-                if (check) check.remove();
-              });
-              const oldCookHint = card.querySelector('.cook-hint');
-              if (oldCookHint) oldCookHint.remove();
-              const oldCookProg = card.querySelector('.cook-progress');
-              if (oldCookProg) oldCookProg.remove();
-              const oldPickHint = card.querySelector('.pickup-hint');
-              if (oldPickHint) oldPickHint.remove();
-              const oldPickProg = card.querySelector('.pickup-progress');
-              if (oldPickProg) oldPickProg.remove();
+          // Sync per-item state from server (even if status didn't change)
+          if (order.cookedItems) localOrder.cookedItems = order.cookedItems;
+          if (order.pickedItems) localOrder.pickedItems = order.pickedItems;
 
-              if (order.status === 'preparing') {
-                card.classList.add('preparing');
-                const badge = card.querySelector('.status-badge');
-                if (badge) { badge.style.display = 'inline-block'; badge.textContent = 'Preparing'; badge.style.background = '#ff9800'; }
-                // Replace buttons with READY (ALL)
-                const btnGroup = card.querySelector('.btn-group');
-                if (btnGroup) {
-                  btnGroup.innerHTML = '';
-                  const readyBtn = document.createElement('button');
-                  readyBtn.className = 'btn-ready';
-                  readyBtn.textContent = 'READY (ALL)';
-                  readyBtn.onclick = function() { markReady(order.id); };
-                  btnGroup.appendChild(readyBtn);
-                }
-                // Set up per-item cooking UI
-                const items = card.querySelectorAll('.item-row');
-                const totalItems = items.length;
-                items.forEach(function(row, idx) {
-                  row.classList.add('cookable');
-                  row.setAttribute('data-idx', idx);
-                  const check = document.createElement('span');
-                  check.className = 'cook-check';
-                  check.textContent = '✓';
-                  row.appendChild(check);
-                  row.onclick = function() { toggleItemCooked(order.id, idx); };
-                });
-                const cardBody = card.querySelector('.card-body');
-                if (cardBody) {
-                  const hint = document.createElement('div');
-                  hint.className = 'cook-hint';
-                  hint.textContent = 'Tap each item when cooked';
-                  cardBody.appendChild(hint);
-                  const prog = document.createElement('div');
-                  prog.className = 'cook-progress';
-                  prog.innerHTML = '<span>0/' + totalItems + '</span><div class="prog-bar"><div class="prog-fill" style="width:0%"></div></div>';
-                  cardBody.appendChild(prog);
-                }
-              } else if (order.status === 'ready') {
-                card.classList.add('ready');
-                const badge = card.querySelector('.status-badge');
-                if (badge) { badge.style.display = 'inline-block'; badge.textContent = 'Ready'; badge.style.background = '#2196f3'; }
-                const btnGroup = card.querySelector('.btn-group');
-                if (btnGroup) btnGroup.innerHTML = '<button class="btn-pickup" onclick="markPickedUp(\'' + order.id + '\')">PICKED UP</button>';
-                // Set up per-item pickup UI
-                const items = card.querySelectorAll('.item-row');
-                const totalItems = items.length;
-                items.forEach(function(row, idx) {
-                  row.classList.add('tappable');
-                  row.setAttribute('data-idx', idx);
-                  row.onclick = function() { toggleItemPickup(order.id, idx); };
-                });
-                const cardBody = card.querySelector('.card-body');
-                if (cardBody) {
-                  const hint = document.createElement('div');
-                  hint.className = 'pickup-hint';
-                  hint.textContent = 'Tap each item as staff picks up';
-                  cardBody.appendChild(hint);
-                  const prog = document.createElement('div');
-                  prog.className = 'pickup-progress';
-                  prog.innerHTML = '<span>0/' + totalItems + '</span><div class="prog-bar"><div class="prog-fill" style="width:0%"></div></div>';
-                  cardBody.appendChild(prog);
-                }
-              } else if (order.status === 'picked_up') {
-                card.classList.add('picked_up');
-                const badge = card.querySelector('.status-badge');
-                if (badge) { badge.style.display = 'inline-block'; badge.textContent = 'Picked Up'; badge.style.background = '#9c27b0'; }
-                const btnGroup = card.querySelector('.btn-group');
-                if (btnGroup) btnGroup.innerHTML = '<button class="btn-paid" onclick="markPaid(\'' + order.id + '\')">PAID BY CUSTOMER</button>';
+          const card = document.getElementById('card-' + order.id);
+          if (!card) return;
+
+          if (statusChanged) {
+            localOrder.status = order.status;
+            // Clear all status classes
+            card.classList.remove('preparing', 'ready', 'picked_up');
+
+            // Clean up any existing per-item UI
+            card.querySelectorAll('.item-row').forEach(function(row) {
+              row.classList.remove('cookable', 'cooked', 'tappable', 'picked');
+              row.onclick = null;
+              var ck = row.querySelector('.cook-check'); if (ck) ck.remove();
+            });
+            var els = card.querySelectorAll('.cook-hint,.cook-progress,.pickup-hint,.pickup-progress');
+            els.forEach(function(el) { el.remove(); });
+
+            if (order.status === 'preparing') {
+              card.classList.add('preparing');
+              var badge = card.querySelector('.status-badge');
+              if (badge) { badge.style.display = 'inline-block'; badge.textContent = 'Preparing'; badge.style.background = '#ff9800'; }
+              var btnGroup = card.querySelector('.btn-group');
+              if (btnGroup) {
+                btnGroup.innerHTML = '';
+                var readyBtn = document.createElement('button');
+                readyBtn.className = 'btn-ready';
+                readyBtn.textContent = 'READY (ALL)';
+                readyBtn.onclick = function() { markReady(order.id); };
+                btnGroup.appendChild(readyBtn);
               }
+              var items = card.querySelectorAll('.item-row');
+              var totalItems = items.length;
+              items.forEach(function(row, idx) {
+                row.classList.add('cookable');
+                row.setAttribute('data-idx', idx);
+                var check = document.createElement('span');
+                check.className = 'cook-check'; check.textContent = '✓';
+                row.appendChild(check);
+                row.onclick = function() { toggleItemCooked(order.id, idx); };
+              });
+              var cardBody = card.querySelector('.card-body');
+              if (cardBody) {
+                var hint = document.createElement('div');
+                hint.className = 'cook-hint'; hint.textContent = 'Tap each item when cooked';
+                cardBody.appendChild(hint);
+                var prog = document.createElement('div');
+                prog.className = 'cook-progress';
+                prog.innerHTML = '<span>0/' + totalItems + '</span><div class="prog-bar"><div class="prog-fill" style="width:0%"></div></div>';
+                cardBody.appendChild(prog);
+              }
+            } else if (order.status === 'ready') {
+              card.classList.add('ready');
+              var badge = card.querySelector('.status-badge');
+              if (badge) { badge.style.display = 'inline-block'; badge.textContent = 'Ready'; badge.style.background = '#2196f3'; }
+              var btnGroup = card.querySelector('.btn-group');
+              if (btnGroup) btnGroup.innerHTML = '<button class="btn-pickup" onclick="markPickedUp(\'' + order.id + '\')">PICKED UP</button>';
+              var items = card.querySelectorAll('.item-row');
+              var totalItems = items.length;
+              items.forEach(function(row, idx) {
+                row.classList.add('tappable');
+                row.setAttribute('data-idx', idx);
+                row.onclick = function() { toggleItemPickup(order.id, idx); };
+              });
+              var cardBody = card.querySelector('.card-body');
+              if (cardBody) {
+                var hint = document.createElement('div');
+                hint.className = 'pickup-hint'; hint.textContent = 'Tap each item as staff picks up';
+                cardBody.appendChild(hint);
+                var prog = document.createElement('div');
+                prog.className = 'pickup-progress';
+                prog.innerHTML = '<span>0/' + totalItems + '</span><div class="prog-bar"><div class="prog-fill" style="width:0%"></div></div>';
+                cardBody.appendChild(prog);
+              }
+            } else if (order.status === 'picked_up') {
+              card.classList.add('picked_up');
+              var badge = card.querySelector('.status-badge');
+              if (badge) { badge.style.display = 'inline-block'; badge.textContent = 'Picked Up'; badge.style.background = '#9c27b0'; }
+              var btnGroup = card.querySelector('.btn-group');
+              if (btnGroup) btnGroup.innerHTML = '<button class="btn-paid" onclick="markPaid(\'' + order.id + '\')">PAID BY CUSTOMER</button>';
             }
+          }
+
+          // Sync per-item visual state from server (works whether status changed or not)
+          if (order.status === 'preparing' && order.cookedItems) {
+            var rows = card.querySelectorAll('.item-row');
+            var totalItems = rows.length;
+            var cookedCount = 0;
+            rows.forEach(function(row, idx) {
+              if (order.cookedItems[idx]) {
+                row.classList.add('cooked');
+                cookedCount++;
+              } else {
+                row.classList.remove('cooked');
+              }
+            });
+            var pct = totalItems > 0 ? Math.round((cookedCount / totalItems) * 100) : 0;
+            var progFill = card.querySelector('.cook-progress .prog-fill');
+            if (progFill) progFill.style.width = pct + '%';
+            var progText = card.querySelector('.cook-progress span');
+            if (progText) progText.textContent = cookedCount + '/' + totalItems;
+          }
+          if (order.status === 'ready' && order.pickedItems) {
+            var rows = card.querySelectorAll('.item-row');
+            var totalItems = rows.length;
+            var pickedCount = 0;
+            rows.forEach(function(row, idx) {
+              if (order.pickedItems[idx]) {
+                row.classList.add('picked');
+                pickedCount++;
+              } else {
+                row.classList.remove('picked');
+              }
+            });
+            var pct = totalItems > 0 ? Math.round((pickedCount / totalItems) * 100) : 0;
+            var progFill = card.querySelector('.pickup-progress .prog-fill');
+            if (progFill) progFill.style.width = pct + '%';
+            var progText = card.querySelector('.pickup-progress span');
+            if (progText) progText.textContent = pickedCount + '/' + totalItems;
           }
         }
       });
