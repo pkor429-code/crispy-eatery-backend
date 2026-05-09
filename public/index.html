@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Crispy Eatery â Kitchen</title>
+<title>Crispy Eatery — Kitchen</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -15,7 +15,7 @@
     overflow-x: hidden;
   }
 
-  /* ââ Header âââââââââââââââââââââââââââââââââââââââ */
+  /* ── Header ─────────────────────────────────── */
   header {
     display: flex;
     align-items: center;
@@ -97,7 +97,7 @@
     align-items: center;
   }
 
-  /* ââ Order grid âââââââââââââââââââââââââââââââââââ */
+  /* ── Order grid ─────────────────────────────────── */
   .orders-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -105,7 +105,7 @@
     padding: 20px 24px;
   }
 
-  /* ââ Order card âââââââââââââââââââââââââââââââââââ */
+  /* ── Order card ─────────────────────────────────── */
   .order-card {
     background: #2a2318;
     border-radius: 12px;
@@ -279,6 +279,85 @@
   .item-row.picked .item-qty {
     background: #2e4a2e;
     color: #4caf50;
+  }
+
+  /* Per-item ready (cooking) tracking */
+  .item-row.cookable {
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 6px;
+    padding: 8px 6px;
+    margin: 0 -6px;
+  }
+
+  .item-row.cookable:hover {
+    background: rgba(255, 152, 0, 0.1);
+  }
+
+  .item-row.cookable:active {
+    transform: scale(0.98);
+  }
+
+  .item-row.cooked {
+    opacity: 0.5;
+  }
+
+  .item-row.cooked .item-qty {
+    background: #2e4a2e;
+    color: #4caf50;
+  }
+
+  .item-row .cook-check {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid #5a4a38;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 8px;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    font-size: 14px;
+    color: transparent;
+  }
+
+  .item-row.cooked .cook-check {
+    background: #4caf50;
+    border-color: #4caf50;
+    color: #fff;
+  }
+
+  .cook-hint {
+    text-align: center;
+    font-size: 12px;
+    color: #ff9800;
+    padding: 6px 0 2px;
+    opacity: 0.8;
+    letter-spacing: 0.5px;
+  }
+
+  .cook-progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #a09080;
+  }
+
+  .cook-progress .prog-bar {
+    flex: 1;
+    height: 4px;
+    background: #3d3428;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .cook-progress .prog-fill {
+    height: 100%;
+    background: #ff9800;
+    border-radius: 2px;
+    transition: width 0.3s ease;
   }
 
   .pickup-hint {
@@ -471,7 +550,7 @@
   .btn-paid:hover { background: #43a047; transform: scale(1.02); }
   .btn-paid:active { transform: scale(0.98); }
 
-  /* ââ Empty state ââââââââââââââââââââââââââââââââââ */
+  /* ── Empty state ────────────────────────────────── */
   .empty-state {
     display: flex;
     flex-direction: column;
@@ -499,7 +578,7 @@
     color: #5a4a38;
   }
 
-  /* ââ Flash animation for new orders âââââââââââââââ */
+  /* ── Flash animation for new orders ─────────────── */
   @keyframes flashBorder {
     0%, 100% { border-color: #e8c477; }
     50% { border-color: #ff9800; }
@@ -509,7 +588,7 @@
     animation: flashBorder 0.5s ease 3;
   }
 
-  /* ââ Order history section âââââââââââââââââââââââ */
+  /* ── Order history section ─────────────────────── */
   .history-section {
     padding: 0 24px 40px;
   }
@@ -611,7 +690,7 @@
     font-style: italic;
   }
 
-  /* ââ Responsive âââââââââââââââââââââââââââââââââââ */
+  /* ── Responsive ─────────────────────────────────── */
   @media (max-width: 768px) {
     .orders-grid {
       grid-template-columns: 1fr;
@@ -678,11 +757,11 @@
 
 <script>
 (function() {
-  // ââ Config ââ
+  // ── Config ──
   const BACKEND = window.location.origin;
   const POLL_INTERVAL = 3000;
 
-  // ââ State ââ
+  // ── State ──
   let knownOrderIds = new Set();
   let orderData = {};
   let prepCount = 0;
@@ -690,7 +769,7 @@
   let isFirstLoad = true;
   let completedOrders = [];
 
-  // ââ Audio ââ
+  // ── Audio ──
   const AudioCtx = window.AudioContext || window.webkitAudioContext;
   let audioCtx = null;
 
@@ -719,7 +798,7 @@
     }
   }
 
-  // ââ Elapsed time ââ
+  // ── Elapsed time ──
   function elapsed(iso) {
     const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
     if (diff < 60) return 'just now';
@@ -735,7 +814,7 @@
     });
   }
 
-  // ââ Render card ââ
+  // ── Render card ──
   function renderCard(order) {
     const isPreparing = order.status === 'preparing';
     const isReady = order.status === 'ready';
@@ -743,15 +822,35 @@
     const itemsHtml = order.items.map((item, idx) => {
       const variant = item.size ? '<span class="item-variant"> &middot; ' + item.size + '</span>' : '';
       const notes = item.notes ? '<div class="item-notes">' + item.notes + '</div>' : '';
+      // Preparing: cookable items with checkmarks
+      const cookable = isPreparing ? ' cookable' : '';
+      const cooked = (isPreparing && order.cookedItems && order.cookedItems[idx]) ? ' cooked' : '';
+      const cookAction = isPreparing ? ' onclick="toggleItemCooked(\'' + order.id + '\',' + idx + ')"' : '';
+      const cookCheck = isPreparing ? '<span class="cook-check">✓</span>' : '';
+      // Ready: tappable items for staff pickup
       const tappable = isReady ? ' tappable' : '';
       const picked = (isReady && order.pickedItems && order.pickedItems[idx]) ? ' picked' : '';
       const tapAction = isReady ? ' onclick="toggleItemPickup(\'' + order.id + '\',' + idx + ')"' : '';
-      return '<div class="item-row' + tappable + picked + '" data-idx="' + idx + '"' + tapAction + '>' +
+      return '<div class="item-row' + cookable + cooked + tappable + picked + '" data-idx="' + idx + '"' + cookAction + tapAction + '>' +
         '<span class="item-qty">' + item.qty + '</span>' +
         '<div class="item-name">' + item.name + variant + notes + '</div>' +
         '<span class="item-price">$' + (item.price * item.qty).toFixed(2) + '</span>' +
+        cookCheck +
       '</div>';
     }).join('');
+
+    // Cook progress hint shown when preparing
+    let cookHint = '';
+    if (isPreparing) {
+      const totalItems = order.items.length;
+      const cookedCount = order.cookedItems ? Object.keys(order.cookedItems).filter(k => order.cookedItems[k]).length : 0;
+      const pct = totalItems > 0 ? Math.round((cookedCount / totalItems) * 100) : 0;
+      cookHint = '<div class="cook-hint">Tap each item when cooked</div>' +
+        '<div class="cook-progress">' +
+          '<span>' + cookedCount + '/' + totalItems + '</span>' +
+          '<div class="prog-bar"><div class="prog-fill" style="width:' + pct + '%"></div></div>' +
+        '</div>';
+    }
 
     // Pickup hint shown when order is ready
     let pickupHint = '';
@@ -759,7 +858,7 @@
       const totalItems = order.items.length;
       const pickedCount = order.pickedItems ? Object.keys(order.pickedItems).filter(k => order.pickedItems[k]).length : 0;
       const pct = totalItems > 0 ? Math.round((pickedCount / totalItems) * 100) : 0;
-      pickupHint = '<div class="pickup-hint">Tap each item as customer picks up</div>' +
+      pickupHint = '<div class="pickup-hint">Tap each item as staff picks up</div>' +
         '<div class="pickup-progress">' +
           '<span>' + pickedCount + '/' + totalItems + '</span>' +
           '<div class="prog-bar"><div class="prog-fill" style="width:' + pct + '%"></div></div>' +
@@ -816,7 +915,7 @@
           '<div class="elapsed" data-created="' + order.createdAt + '">' + elapsed(order.createdAt) + '</div>' +
         '</div>' +
       '</div>' +
-      '<div class="card-body">' + itemsHtml + orderNotes + pickupHint + '</div>' +
+      '<div class="card-body">' + itemsHtml + orderNotes + cookHint + pickupHint + '</div>' +
       '<div class="card-footer">' +
         '<div class="order-total">$' + order.total.toFixed(2) + '</div>' +
         '<div class="btn-group">' +
@@ -826,7 +925,7 @@
     '</div>';
   }
 
-  // ââ Mark order preparing ââ
+  // ── Mark order preparing ──
   window.markPreparing = async function(orderId) {
     const card = document.getElementById('card-' + orderId);
     if (card) {
@@ -834,15 +933,42 @@
       // Show status badge
       const badge = card.querySelector('.status-badge');
       if (badge) badge.style.display = 'inline-block';
-      // Replace all buttons with READY only
+      // Replace all buttons with READY (ALL) override
       const btnGroup = card.querySelector('.btn-group');
       if (btnGroup) {
         btnGroup.innerHTML = '';
         const readyBtn = document.createElement('button');
         readyBtn.className = 'btn-ready';
-        readyBtn.textContent = 'READY';
+        readyBtn.textContent = 'READY (ALL)';
         readyBtn.onclick = function() { markReady(orderId); };
         btnGroup.appendChild(readyBtn);
+      }
+      // Make items tappable for per-dish cooking
+      const items = card.querySelectorAll('.item-row');
+      const totalItems = items.length;
+      items.forEach(function(row, idx) {
+        row.classList.add('cookable');
+        row.setAttribute('data-idx', idx);
+        // Add cook checkmark
+        if (!row.querySelector('.cook-check')) {
+          const check = document.createElement('span');
+          check.className = 'cook-check';
+          check.textContent = '✓';
+          row.appendChild(check);
+        }
+        row.onclick = function() { toggleItemCooked(orderId, idx); };
+      });
+      // Add cook hint + progress bar
+      const cardBody = card.querySelector('.card-body');
+      if (cardBody && !cardBody.querySelector('.cook-hint')) {
+        const hint = document.createElement('div');
+        hint.className = 'cook-hint';
+        hint.textContent = 'Tap each item when cooked';
+        cardBody.appendChild(hint);
+        const prog = document.createElement('div');
+        prog.className = 'cook-progress';
+        prog.innerHTML = '<span>0/' + totalItems + '</span><div class="prog-bar"><div class="prog-fill" style="width:0%"></div></div>';
+        cardBody.appendChild(prog);
       }
     }
 
@@ -861,7 +987,7 @@
     }
   };
 
-  // ââ Mark order ready (kitchen done) ââ
+  // ── Mark order ready (kitchen done) ──
   window.markReady = async function(orderId) {
     const card = document.getElementById('card-' + orderId);
     if (card) {
@@ -870,6 +996,19 @@
       // Update status badge
       const badge = card.querySelector('.status-badge');
       if (badge) { badge.style.display = 'inline-block'; badge.textContent = 'Ready'; badge.style.background = '#2196f3'; }
+      // Remove cook state (cookable items, checkmarks, cook hint/progress)
+      card.querySelectorAll('.item-row').forEach(function(row) {
+        row.classList.remove('cookable', 'cooked');
+        row.onclick = null;
+        const check = row.querySelector('.cook-check');
+        if (check) check.remove();
+      });
+      const cookHintEl = card.querySelector('.cook-hint');
+      if (cookHintEl) cookHintEl.remove();
+      const cookProgEl = card.querySelector('.cook-progress');
+      if (cookProgEl) cookProgEl.remove();
+      // Clear cookedItems data
+      if (orderData[orderId]) delete orderData[orderId].cookedItems;
       // Replace buttons with PICKED UP only
       const btnGroup = card.querySelector('.btn-group');
       if (btnGroup) {
@@ -893,7 +1032,7 @@
       if (cardBody && !cardBody.querySelector('.pickup-hint')) {
         const hint = document.createElement('div');
         hint.className = 'pickup-hint';
-        hint.textContent = 'Tap each item as customer picks up';
+        hint.textContent = 'Tap each item as staff picks up';
         cardBody.appendChild(hint);
         const prog = document.createElement('div');
         prog.className = 'pickup-progress';
@@ -916,7 +1055,40 @@
     }
   };
 
-  // ââ Toggle individual item pickup ââ
+  // ── Toggle individual item cooked (during preparing) ──
+  window.toggleItemCooked = function(orderId, itemIdx) {
+    const order = orderData[orderId];
+    if (!order || order.status !== 'preparing') return;
+
+    if (!order.cookedItems) order.cookedItems = {};
+    order.cookedItems[itemIdx] = !order.cookedItems[itemIdx];
+
+    const card = document.getElementById('card-' + orderId);
+    if (!card) return;
+
+    const rows = card.querySelectorAll('.item-row');
+    if (rows[itemIdx]) {
+      rows[itemIdx].classList.toggle('cooked', order.cookedItems[itemIdx]);
+    }
+
+    // Update cook progress bar
+    const totalItems = order.items.length;
+    const cookedCount = Object.keys(order.cookedItems).filter(k => order.cookedItems[k]).length;
+    const pct = Math.round((cookedCount / totalItems) * 100);
+
+    const progFill = card.querySelector('.cook-progress .prog-fill');
+    if (progFill) progFill.style.width = pct + '%';
+
+    const progText = card.querySelector('.cook-progress span');
+    if (progText) progText.textContent = cookedCount + '/' + totalItems;
+
+    // If all items cooked, auto-advance to ready
+    if (cookedCount === totalItems) {
+      setTimeout(function() { markReady(orderId); }, 500);
+    }
+  };
+
+  // ── Toggle individual item pickup ──
   window.toggleItemPickup = function(orderId, itemIdx) {
     const order = orderData[orderId];
     if (!order || order.status !== 'ready') return;
@@ -951,7 +1123,7 @@
     }
   };
 
-  // ââ Mark order picked up ââ
+  // ── Mark order picked up ──
   window.markPickedUp = async function(orderId) {
     const card = document.getElementById('card-' + orderId);
     if (card) {
@@ -995,7 +1167,7 @@
     }
   };
 
-  // ââ Mark order paid (sends to history) ââ
+  // ── Mark order paid (sends to history) ──
   window.markPaid = async function(orderId) {
     const card = document.getElementById('card-' + orderId);
     if (card) card.classList.add('done');
@@ -1028,7 +1200,7 @@
     }, 400);
   };
 
-  // ââ Mark order done (legacy) ââ
+  // ── Mark order done (legacy) ──
   window.markDone = async function(orderId) {
     const card = document.getElementById('card-' + orderId);
     if (card) card.classList.add('done');
@@ -1061,7 +1233,7 @@
     }, 400);
   };
 
-  // ââ Toggle history ââ
+  // ── Toggle history ──
   window.toggleHistory = function() {
     const list = document.getElementById('historyList');
     const btn = document.getElementById('historyToggle');
@@ -1069,7 +1241,7 @@
     btn.textContent = list.classList.contains('open') ? 'Hide' : 'Show';
   };
 
-  // ââ Render history ââ
+  // ── Render history ──
   function renderHistory() {
     const list = document.getElementById('historyList');
     const empty = document.getElementById('historyEmpty');
@@ -1106,7 +1278,7 @@
     });
   }
 
-  // ââ Update stats ââ
+  // ── Update stats ──
   function updateStats() {
     let activeC = 0;
     let prepC = 0;
@@ -1129,7 +1301,7 @@
       activeC === 0 ? 'flex' : 'none';
   }
 
-  // ââ Poll orders ââ
+  // ── Poll orders ──
   async function pollOrders() {
     try {
       const resp = await fetch(BACKEND + '/orders');
@@ -1229,14 +1401,14 @@
     }
   }
 
-  // ââ Update elapsed times ââ
+  // ── Update elapsed times ──
   function updateElapsed() {
     document.querySelectorAll('.elapsed[data-created]').forEach(el => {
       el.textContent = elapsed(el.dataset.created);
     });
   }
 
-  // ââ Init ââ
+  // ── Init ──
   document.addEventListener('click', function unlock() {
     ensureAudio();
     if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
