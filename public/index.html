@@ -155,6 +155,24 @@
     background: #2196f3;
   }
 
+  .order-card.picked_up {
+    border-color: #9c27b0;
+    box-shadow: 0 0 12px rgba(156, 39, 176, 0.2);
+  }
+
+  .order-card.picked_up .card-header {
+    background: #2d1a33;
+  }
+
+  .order-card.picked_up .table-badge {
+    background: #9c27b0;
+  }
+
+  .order-card.picked_up .status-badge {
+    display: inline-block;
+    background: #9c27b0;
+  }
+
   @keyframes slideIn {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
@@ -358,6 +376,41 @@
   .btn-done:hover { background: #43a047; transform: scale(1.02); }
   .btn-done:active { transform: scale(0.98); }
 
+  .btn-pickup {
+    background: #9c27b0;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+  }
+
+  .btn-pickup:hover { background: #7b1fa2; transform: scale(1.02); }
+  .btn-pickup:active { transform: scale(0.98); }
+
+  .btn-paid {
+    background: #4caf50;
+    color: #fff;
+    border: none;
+    padding: 10px 28px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+    width: 100%;
+  }
+
+  .btn-paid:hover { background: #43a047; transform: scale(1.02); }
+  .btn-paid:active { transform: scale(0.98); }
+
   /* ââ Empty state ââââââââââââââââââââââââââââââââââ */
   .empty-state {
     display: flex;
@@ -531,8 +584,12 @@
       <div class="stat-label">Ready</div>
     </div>
     <div class="stat">
+      <div class="stat-num" id="pickedUpCount">0</div>
+      <div class="stat-label">Picked Up</div>
+    </div>
+    <div class="stat">
       <div class="stat-num" id="doneCount">0</div>
-      <div class="stat-label">Done today</div>
+      <div class="stat-label">Paid</div>
     </div>
     <div class="conn-status">
       <span class="status-dot live" id="statusDot"></span>
@@ -622,6 +679,7 @@
   function renderCard(order) {
     const isPreparing = order.status === 'preparing';
     const isReady = order.status === 'ready';
+    const isPickedUp = order.status === 'picked_up';
     const itemsHtml = order.items.map(item => {
       const variant = item.size ? '<span class="item-variant"> &middot; ' + item.size + '</span>' : '';
       const notes = item.notes ? '<div class="item-notes">' + item.notes + '</div>' : '';
@@ -637,17 +695,20 @@
       : '';
 
     // Buttons based on status:
-    // received: PREP + DONE
-    // preparing: READY + DONE
-    // ready: DONE only
+    // received: PREP
+    // preparing: READY
+    // ready: PICKED UP
+    // picked_up: PAID BY CUSTOMER (full width)
     let buttons = '';
-    if (!isPreparing && !isReady) {
+    if (!isPreparing && !isReady && !isPickedUp) {
       buttons = '<button class="btn-prep" onclick="markPreparing(\'' + order.id + '\')">PREP</button>';
-    }
-    if (isPreparing) {
+    } else if (isPreparing) {
       buttons = '<button class="btn-ready" onclick="markReady(\'' + order.id + '\')">READY</button>';
+    } else if (isReady) {
+      buttons = '<button class="btn-pickup" onclick="markPickedUp(\'' + order.id + '\')">PICKED UP</button>';
+    } else if (isPickedUp) {
+      buttons = '<button class="btn-paid" onclick="markPaid(\'' + order.id + '\')">PAID BY CUSTOMER</button>';
     }
-    buttons += '<button class="btn-done" onclick="markDone(\'' + order.id + '\')">DONE</button>';
 
     // Status badge text and visibility
     let statusClass = '';
@@ -660,6 +721,10 @@
     } else if (isReady) {
       statusClass = ' ready';
       badgeText = 'Ready';
+      badgeVisible = true;
+    } else if (isPickedUp) {
+      statusClass = ' picked_up';
+      badgeText = 'Picked Up';
       badgeVisible = true;
     }
 
@@ -693,15 +758,15 @@
       // Show status badge
       const badge = card.querySelector('.status-badge');
       if (badge) badge.style.display = 'inline-block';
-      // Hide prep button, add ready button
-      const prepBtn = card.querySelector('.btn-prep');
-      if (prepBtn) {
+      // Replace all buttons with READY only
+      const btnGroup = card.querySelector('.btn-group');
+      if (btnGroup) {
+        btnGroup.innerHTML = '';
         const readyBtn = document.createElement('button');
         readyBtn.className = 'btn-ready';
         readyBtn.textContent = 'READY';
         readyBtn.onclick = function() { markReady(orderId); };
-        prepBtn.parentNode.insertBefore(readyBtn, prepBtn);
-        prepBtn.remove();
+        btnGroup.appendChild(readyBtn);
       }
     }
 
@@ -729,9 +794,16 @@
       // Update status badge
       const badge = card.querySelector('.status-badge');
       if (badge) { badge.style.display = 'inline-block'; badge.textContent = 'Ready'; badge.style.background = '#2196f3'; }
-      // Replace READY button with nothing (only DONE remains)
-      const readyBtn = card.querySelector('.btn-ready');
-      if (readyBtn) readyBtn.remove();
+      // Replace buttons with PICKED UP only
+      const btnGroup = card.querySelector('.btn-group');
+      if (btnGroup) {
+        btnGroup.innerHTML = '';
+        const pickupBtn = document.createElement('button');
+        pickupBtn.className = 'btn-pickup';
+        pickupBtn.textContent = 'PICKED UP';
+        pickupBtn.onclick = function() { markPickedUp(orderId); };
+        btnGroup.appendChild(pickupBtn);
+      }
     }
 
     if (orderData[orderId]) orderData[orderId].status = 'ready';
@@ -748,7 +820,75 @@
     }
   };
 
-  // ââ Mark order done ââ
+  // ââ Mark order picked up ââ
+  window.markPickedUp = async function(orderId) {
+    const card = document.getElementById('card-' + orderId);
+    if (card) {
+      card.classList.remove('ready');
+      card.classList.add('picked_up');
+      // Update status badge
+      const badge = card.querySelector('.status-badge');
+      if (badge) { badge.style.display = 'inline-block'; badge.textContent = 'Picked Up'; badge.style.background = '#9c27b0'; }
+      // Replace PICKED UP button with PAID BY CUSTOMER (full width)
+      const pickupBtn = card.querySelector('.btn-pickup');
+      if (pickupBtn) {
+        const paidBtn = document.createElement('button');
+        paidBtn.className = 'btn-paid';
+        paidBtn.textContent = 'PAID BY CUSTOMER';
+        paidBtn.onclick = function() { markPaid(orderId); };
+        pickupBtn.parentNode.insertBefore(paidBtn, pickupBtn);
+        pickupBtn.remove();
+      }
+    }
+
+    if (orderData[orderId]) orderData[orderId].status = 'picked_up';
+    updateStats();
+
+    try {
+      await fetch(BACKEND + '/orders/' + orderId, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'picked_up' })
+      });
+    } catch(e) {
+      console.error('Failed to update order:', e);
+    }
+  };
+
+  // ââ Mark order paid (sends to history) ââ
+  window.markPaid = async function(orderId) {
+    const card = document.getElementById('card-' + orderId);
+    if (card) card.classList.add('done');
+
+    // Save to history before removing
+    if (orderData[orderId]) {
+      const order = orderData[orderId];
+      order.completedAt = new Date().toISOString();
+      completedOrders.unshift(order);
+      if (completedOrders.length > 50) completedOrders.pop();
+      renderHistory();
+    }
+
+    try {
+      await fetch(BACKEND + '/orders/' + orderId, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'done' })
+      });
+    } catch(e) {
+      console.error('Failed to update order:', e);
+    }
+
+    setTimeout(() => {
+      if (card) card.remove();
+      delete orderData[orderId];
+      knownOrderIds.delete(orderId);
+      doneCount++;
+      updateStats();
+    }, 400);
+  };
+
+  // ââ Mark order done (legacy) ââ
   window.markDone = async function(orderId) {
     const card = document.getElementById('card-' + orderId);
     if (card) card.classList.add('done');
@@ -831,16 +971,19 @@
     let activeC = 0;
     let prepC = 0;
     let readyC = 0;
+    let pickedUpC = 0;
     knownOrderIds.forEach(id => {
       if (orderData[id]) {
         if (orderData[id].status === 'preparing') prepC++;
         if (orderData[id].status === 'ready') readyC++;
+        if (orderData[id].status === 'picked_up') pickedUpC++;
       }
       activeC++;
     });
     document.getElementById('activeCount').textContent = activeC;
     document.getElementById('prepCount').textContent = prepC;
     document.getElementById('readyCount').textContent = readyC;
+    document.getElementById('pickedUpCount').textContent = pickedUpC;
     document.getElementById('doneCount').textContent = doneCount;
     document.getElementById('emptyState').style.display =
       activeC === 0 ? 'flex' : 'none';
@@ -882,29 +1025,28 @@
             orderData[order.id].status = order.status;
             const card = document.getElementById('card-' + order.id);
             if (card) {
+              // Clear all status classes first
+              card.classList.remove('preparing', 'ready', 'picked_up');
+
               if (order.status === 'preparing') {
-                card.classList.remove('ready');
                 card.classList.add('preparing');
                 const badge = card.querySelector('.status-badge');
                 if (badge) { badge.style.display = 'inline-block'; badge.textContent = 'Preparing'; badge.style.background = '#ff9800'; }
-                const prepBtn = card.querySelector('.btn-prep');
-                if (prepBtn) {
-                  const readyBtn = document.createElement('button');
-                  readyBtn.className = 'btn-ready';
-                  readyBtn.textContent = 'READY';
-                  readyBtn.onclick = function() { window.markReady(order.id); };
-                  prepBtn.parentNode.insertBefore(readyBtn, prepBtn);
-                  prepBtn.remove();
-                }
+                // Replace buttons: show READY only
+                const btnGroup = card.querySelector('.btn-group');
+                if (btnGroup) btnGroup.innerHTML = '<button class="btn-ready" onclick="markReady(\'' + order.id + '\')">READY</button>';
               } else if (order.status === 'ready') {
-                card.classList.remove('preparing');
                 card.classList.add('ready');
                 const badge = card.querySelector('.status-badge');
                 if (badge) { badge.style.display = 'inline-block'; badge.textContent = 'Ready'; badge.style.background = '#2196f3'; }
-                const readyBtn = card.querySelector('.btn-ready');
-                if (readyBtn) readyBtn.remove();
-                const prepBtn = card.querySelector('.btn-prep');
-                if (prepBtn) prepBtn.remove();
+                const btnGroup = card.querySelector('.btn-group');
+                if (btnGroup) btnGroup.innerHTML = '<button class="btn-pickup" onclick="markPickedUp(\'' + order.id + '\')">PICKED UP</button>';
+              } else if (order.status === 'picked_up') {
+                card.classList.add('picked_up');
+                const badge = card.querySelector('.status-badge');
+                if (badge) { badge.style.display = 'inline-block'; badge.textContent = 'Picked Up'; badge.style.background = '#9c27b0'; }
+                const btnGroup = card.querySelector('.btn-group');
+                if (btnGroup) btnGroup.innerHTML = '<button class="btn-paid" onclick="markPaid(\'' + order.id + '\')">PAID BY CUSTOMER</button>';
               }
             }
           }
