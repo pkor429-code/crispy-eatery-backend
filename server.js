@@ -32,6 +32,16 @@ function saveOrder(order) {
   return orders.length;
 }
 
+function nextOrderId() {
+  const today = new Date().toISOString().slice(0, 10);
+  const orders = loadOrders();
+  const todayOrders = orders.filter(
+    (o) => o.createdAt && o.createdAt.startsWith(today)
+  );
+  const num = todayOrders.length + 1;
+  return `#${String(num).padStart(3, "0")}`;
+}
+
 // ── Health check ───────────────────────────────────────────
 app.get("/", (_req, res) => {
   const orders = loadOrders();
@@ -62,7 +72,7 @@ app.post("/order", (req, res) => {
 
     // Build order record
     const order = {
-      id: `ORD-${Date.now()}`,
+      id: nextOrderId(),
       tableNumber: tableNumber || "?",
       guestCount: guestCount || 1,
       items: items.map((item) => ({
@@ -120,19 +130,17 @@ app.use("/dashboard", express.static(path.join(__dirname, "public")));
 // ── GET /orders — view all orders (staff dashboard) ───────
 app.get("/orders", (req, res) => {
   let orders = loadOrders();
-  // Filter by status (default: show active orders only)
   const status = req.query.status;
   if (status) {
     orders = orders.filter((o) => o.status === status);
   }
-  // Filter orders created after a timestamp (for polling)
   const since = req.query.since;
   if (since) {
     orders = orders.filter((o) => new Date(o.createdAt) > new Date(since));
   }
   res.json({
     count: orders.length,
-    orders: orders.reverse(), // newest first
+    orders: orders.reverse(),
   });
 });
 
