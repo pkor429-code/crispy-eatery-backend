@@ -253,6 +253,66 @@
 
   .item-row:last-child { border-bottom: none; }
 
+  .item-row.tappable {
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 6px;
+    padding: 8px 6px;
+    margin: 0 -6px;
+  }
+
+  .item-row.tappable:hover {
+    background: rgba(33, 150, 243, 0.1);
+  }
+
+  .item-row.tappable:active {
+    transform: scale(0.98);
+  }
+
+  .item-row.picked {
+    opacity: 0.4;
+    text-decoration: line-through;
+    text-decoration-color: #4caf50;
+    text-decoration-thickness: 2px;
+  }
+
+  .item-row.picked .item-qty {
+    background: #2e4a2e;
+    color: #4caf50;
+  }
+
+  .pickup-hint {
+    text-align: center;
+    font-size: 12px;
+    color: #2196f3;
+    padding: 6px 0 2px;
+    opacity: 0.8;
+    letter-spacing: 0.5px;
+  }
+
+  .pickup-progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #a09080;
+  }
+
+  .pickup-progress .prog-bar {
+    flex: 1;
+    height: 4px;
+    background: #3d3428;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .pickup-progress .prog-fill {
+    height: 100%;
+    background: #4caf50;
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+
   .item-qty {
     background: #4a3d2e;
     color: #e8c477;
@@ -680,15 +740,31 @@
     const isPreparing = order.status === 'preparing';
     const isReady = order.status === 'ready';
     const isPickedUp = order.status === 'picked_up';
-    const itemsHtml = order.items.map(item => {
+    const itemsHtml = order.items.map((item, idx) => {
       const variant = item.size ? '<span class="item-variant"> &middot; ' + item.size + '</span>' : '';
       const notes = item.notes ? '<div class="item-notes">' + item.notes + '</div>' : '';
-      return '<div class="item-row">' +
+      const tappable = isReady ? ' tappable' : '';
+      const picked = (isReady && order.pickedItems && order.pickedItems[idx]) ? ' picked' : '';
+      const tapAction = isReady ? ' onclick="toggleItemPickup(\'' + order.id + '\',' + idx + ')"' : '';
+      return '<div class="item-row' + tappable + picked + '" data-idx="' + idx + '"' + tapAction + '>' +
         '<span class="item-qty">' + item.qty + '</span>' +
         '<div class="item-name">' + item.name + variant + notes + '</div>' +
         '<span class="item-price">$' + (item.price * item.qty).toFixed(2) + '</span>' +
       '</div>';
     }).join('');
+
+    // Pickup hint shown when order is ready
+    let pickupHint = '';
+    if (isReady) {
+      const totalItems = order.items.length;
+      const pickedCount = order.pickedItems ? Object.keys(order.pickedItems).filter(k => order.pickedItems[k]).length : 0;
+      const pct = totalItems > 0 ? Math.round((pickedCount / totalItems) * 100) : 0;
+      pickupHint = '<div class="pickup-hint">Tap each item as customer picks up</div>' +
+        '<div class="pickup-progress">' +
+          '<span>' + pickedCount + '/' + totalItems + '</span>' +
+          '<div class="prog-bar"><div class="prog-fill" style="width:' + pct + '%"></div></div>' +
+        '</div>';
+    }
 
     const orderNotes = order.notes
       ? '<div class="order-notes">' + order.notes + '</div>'
@@ -740,7 +816,7 @@
           '<div class="elapsed" data-created="' + order.createdAt + '">' + elapsed(order.createdAt) + '</div>' +
         '</div>' +
       '</div>' +
-      '<div class="card-body">' + itemsHtml + orderNotes + '</div>' +
+      '<div class="card-body">' + itemsHtml + orderNotes + pickupHint + '</div>' +
       '<div class="card-footer">' +
         '<div class="order-total">$' + order.total.toFixed(2) + '</div>' +
         '<div class="btn-group">' +
@@ -804,6 +880,26 @@
         pickupBtn.onclick = function() { markPickedUp(orderId); };
         btnGroup.appendChild(pickupBtn);
       }
+      // Make items tappable for per-dish pickup
+      const items = card.querySelectorAll('.item-row');
+      const totalItems = items.length;
+      items.forEach(function(row, idx) {
+        row.classList.add('tappable');
+        row.setAttribute('data-idx', idx);
+        row.onclick = function() { toggleItemPickup(orderId, idx); };
+      });
+      // Add pickup hint + progress bar
+      const cardBody = card.querySelector('.card-body');
+      if (cardBody && !cardBody.querySelector('.pickup-hint')) {
+        const hint = document.createElement('div');
+        hint.className = 'pickup-hint';
+        hint.textContent = 'Tap each item as customer picks up';
+        cardBody.appendChild(hint);
+        const prog = document.createElement('div');
+        prog.className = 'pickup-progress';
+        prog.innerHTML = '<span>0/' + totalItems + '</span><div class="prog-bar"><div class="prog-fill" style="width:0%"></div></div>';
+        cardBody.appendChild(prog);
+      }
     }
 
     if (orderData[orderId]) orderData[orderId].status = 'ready';
@@ -820,6 +916,41 @@
     }
   };
 
+  // ââ Toggle individual item pickup ââ
+  window.toggleItemPickup = function(orderId, itemIdx) {
+    const order = orderData[orderId];
+    if (!order || order.status !== 'ready') return;
+
+    // Initialize pickedItems tracking
+    if (!order.pickedItems) order.pickedItems = {};
+    order.pickedItems[itemIdx] = !order.pickedItems[itemIdx];
+
+    const card = document.getElementById('card-' + orderId);
+    if (!card) return;
+
+    // Toggle strike-through on the item row
+    const rows = card.querySelectorAll('.item-row');
+    if (rows[itemIdx]) {
+      rows[itemIdx].classList.toggle('picked', order.pickedItems[itemIdx]);
+    }
+
+    // Update progress bar
+    const totalItems = order.items.length;
+    const pickedCount = Object.keys(order.pickedItems).filter(k => order.pickedItems[k]).length;
+    const pct = Math.round((pickedCount / totalItems) * 100);
+
+    const progFill = card.querySelector('.prog-fill');
+    if (progFill) progFill.style.width = pct + '%';
+
+    const progText = card.querySelector('.pickup-progress span');
+    if (progText) progText.textContent = pickedCount + '/' + totalItems;
+
+    // If all items picked, auto-advance to picked_up status
+    if (pickedCount === totalItems) {
+      setTimeout(function() { markPickedUp(orderId); }, 500);
+    }
+  };
+
   // ââ Mark order picked up ââ
   window.markPickedUp = async function(orderId) {
     const card = document.getElementById('card-' + orderId);
@@ -829,6 +960,15 @@
       // Update status badge
       const badge = card.querySelector('.status-badge');
       if (badge) { badge.style.display = 'inline-block'; badge.textContent = 'Picked Up'; badge.style.background = '#9c27b0'; }
+      // Remove tappable state and pickup hint/progress
+      card.querySelectorAll('.item-row').forEach(function(row) {
+        row.classList.remove('tappable', 'picked');
+        row.onclick = null;
+      });
+      const hint = card.querySelector('.pickup-hint');
+      if (hint) hint.remove();
+      const prog = card.querySelector('.pickup-progress');
+      if (prog) prog.remove();
       // Replace PICKED UP button with PAID BY CUSTOMER (full width)
       const pickupBtn = card.querySelector('.btn-pickup');
       if (pickupBtn) {
