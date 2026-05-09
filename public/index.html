@@ -117,6 +117,23 @@
     box-shadow: 0 0 20px rgba(232, 196, 119, 0.3);
   }
 
+  .order-card.preparing {
+    border-color: #ff9800;
+    box-shadow: 0 0 12px rgba(255, 152, 0, 0.2);
+  }
+
+  .order-card.preparing .card-header {
+    background: #3d2e10;
+  }
+
+  .order-card.preparing .table-badge {
+    background: #ff9800;
+  }
+
+  .order-card.preparing .status-badge {
+    display: inline-block;
+  }
+
   @keyframes slideIn {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
@@ -147,9 +164,21 @@
     text-align: center;
   }
 
-  .order-meta {
-    text-align: right;
+  .status-badge {
+    display: none;
+    background: #ff9800;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-left: 10px;
+    animation: pulse 1.5s infinite;
   }
+
+  .order-meta { text-align: right; }
 
   .order-id {
     font-size: 11px;
@@ -169,9 +198,7 @@
     margin-top: 2px;
   }
 
-  .card-body {
-    padding: 14px 18px;
-  }
+  .card-body { padding: 14px 18px; }
 
   .item-row {
     display: flex;
@@ -206,11 +233,7 @@
     line-height: 1.3;
   }
 
-  .item-variant {
-    font-weight: 400;
-    color: #a09080;
-    font-size: 13px;
-  }
+  .item-variant { font-weight: 400; color: #a09080; font-size: 13px; }
 
   .item-notes {
     font-size: 12px;
@@ -250,13 +273,35 @@
     color: #e8c477;
   }
 
+  .btn-group {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-prep {
+    background: #ff9800;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+  }
+
+  .btn-prep:hover { background: #f57c00; transform: scale(1.02); }
+  .btn-prep:active { transform: scale(0.98); }
+
   .btn-done {
     background: #4caf50;
     color: #fff;
     border: none;
-    padding: 10px 28px;
+    padding: 10px 20px;
     border-radius: 8px;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 700;
     cursor: pointer;
     text-transform: uppercase;
@@ -276,41 +321,94 @@
     color: #6a5a48;
   }
 
-  .empty-icon {
-    font-size: 64px;
-    margin-bottom: 16px;
-    opacity: 0.5;
-  }
-
-  .empty-text {
-    font-size: 20px;
-    font-family: Georgia, serif;
-    font-style: italic;
-  }
-
-  .empty-sub {
-    font-size: 13px;
-    margin-top: 6px;
-    color: #5a4a38;
-  }
+  .empty-icon { font-size: 64px; margin-bottom: 16px; opacity: 0.5; }
+  .empty-text { font-size: 20px; font-family: Georgia, serif; font-style: italic; }
+  .empty-sub { font-size: 13px; margin-top: 6px; color: #5a4a38; }
 
   @keyframes flashBorder {
     0%, 100% { border-color: #e8c477; }
     50% { border-color: #ff9800; }
   }
 
-  .order-card.flash {
-    animation: flashBorder 0.5s ease 3;
+  .order-card.flash { animation: flashBorder 0.5s ease 3; }
+
+  .history-section { padding: 0 24px 40px; }
+
+  .history-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 0 12px;
+    border-top: 1px solid #3d3428;
+    margin-top: 20px;
+  }
+
+  .history-title {
+    font-family: Georgia, serif;
+    font-size: 18px;
+    color: #8a7a68;
+    font-style: italic;
+  }
+
+  .history-toggle {
+    background: none;
+    border: 1px solid #3d3428;
+    color: #8a7a68;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+  }
+
+  .history-toggle:hover { border-color: #8a7a68; color: #c49a5c; }
+
+  .history-list { display: none; }
+  .history-list.open { display: block; }
+
+  .history-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: #221c14;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    border: 1px solid #2a2318;
+    opacity: 0.7;
+  }
+
+  .history-item .hi-left { display: flex; align-items: center; gap: 12px; }
+
+  .history-item .hi-table {
+    background: #3d3428;
+    color: #8a7a68;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+  }
+
+  .history-item .hi-items { font-size: 13px; color: #8a7a68; }
+  .history-item .hi-right { text-align: right; }
+  .history-item .hi-total { font-size: 14px; color: #6a5a48; font-weight: 600; }
+  .history-item .hi-time { font-size: 11px; color: #5a4a38; }
+
+  .history-empty {
+    text-align: center;
+    padding: 20px;
+    color: #5a4a38;
+    font-size: 13px;
+    font-style: italic;
   }
 
   @media (max-width: 768px) {
-    .orders-grid {
-      grid-template-columns: 1fr;
-      padding: 12px;
-      gap: 12px;
-    }
+    .orders-grid { grid-template-columns: 1fr; padding: 12px; gap: 12px; }
     header { padding: 12px 16px; flex-wrap: wrap; gap: 10px; }
     .logo span { display: block; margin-left: 0; }
+    .history-section { padding: 0 12px 30px; }
   }
 </style>
 </head>
@@ -324,6 +422,10 @@
     <div class="stat">
       <div class="stat-num" id="activeCount">0</div>
       <div class="stat-label">Active</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="prepCount">0</div>
+      <div class="stat-label">Preparing</div>
     </div>
     <div class="stat">
       <div class="stat-num" id="doneCount">0</div>
@@ -344,13 +446,26 @@
   </div>
 </main>
 
+<section class="history-section">
+  <div class="history-header">
+    <div class="history-title">Order History</div>
+    <button class="history-toggle" id="historyToggle" onclick="toggleHistory()">Show</button>
+  </div>
+  <div class="history-list" id="historyList">
+    <div class="history-empty" id="historyEmpty">No completed orders yet</div>
+  </div>
+</section>
+
 <script>
 (function() {
   var BACKEND = window.location.origin;
   var POLL_INTERVAL = 3000;
   var knownOrderIds = {};
+  var orderData = {};
+  var prepCount = 0;
   var doneCount = 0;
   var isFirstLoad = true;
+  var completedOrders = [];
   var AudioCtx = window.AudioContext || window.webkitAudioContext;
   var audioCtx = null;
 
@@ -375,9 +490,7 @@
         osc.start(now + i * 0.15);
         osc.stop(now + i * 0.15 + 0.6);
       }
-    } catch(e) {
-      console.log("Audio not available");
-    }
+    } catch(e) { console.log("Audio not available"); }
   }
 
   function elapsed(iso) {
@@ -402,6 +515,7 @@
   }
 
   function renderCard(order) {
+    var isPreparing = order.status === "preparing";
     var itemsHtml = "";
     for (var i = 0; i < order.items.length; i++) {
       var item = order.items[i];
@@ -414,13 +528,17 @@
       "</div>";
     }
 
-    var orderNotes = order.notes
-      ? '<div class="order-notes">' + order.notes + "</div>"
-      : "";
+    var orderNotes = order.notes ? '<div class="order-notes">' + order.notes + "</div>" : "";
 
-    return '<div class="order-card" id="card-' + order.id + '" data-id="' + order.id + '">' +
+    var prepBtn = isPreparing ? "" :
+      '<button class="btn-prep" onclick="markPreparing(\'' + order.id + '\')">' + "PREP</button>";
+
+    return '<div class="order-card' + (isPreparing ? " preparing" : "") + '" id="card-' + order.id + '" data-id="' + order.id + '">' +
       '<div class="card-header">' +
-        '<div class="table-badge">T' + order.tableNumber + "</div>" +
+        '<div style="display:flex;align-items:center">' +
+          '<div class="table-badge">T' + order.tableNumber + "</div>" +
+          '<span class="status-badge"' + (isPreparing ? ' style="display:inline-block"' : "") + ">Preparing</span>" +
+        "</div>" +
         '<div class="order-meta">' +
           '<div class="order-id">' + order.id + "</div>" +
           '<div class="order-time">' + formatTime(order.createdAt) + "</div>" +
@@ -430,36 +548,111 @@
       '<div class="card-body">' + itemsHtml + orderNotes + "</div>" +
       '<div class="card-footer">' +
         '<div class="order-total">$' + order.total.toFixed(2) + "</div>" +
-        '<button class="btn-done" onclick="markDone(\'' + order.id + '\')">' + "DONE</button>" +
+        '<div class="btn-group">' +
+          prepBtn +
+          '<button class="btn-done" onclick="markDone(\'' + order.id + '\')">' + "DONE</button>" +
+        "</div>" +
       "</div>" +
     "</div>";
   }
+
+  window.markPreparing = function(orderId) {
+    var card = document.getElementById("card-" + orderId);
+    if (card) {
+      card.classList.add("preparing");
+      var badge = card.querySelector(".status-badge");
+      if (badge) badge.style.display = "inline-block";
+      var prepBtn = card.querySelector(".btn-prep");
+      if (prepBtn) prepBtn.remove();
+    }
+    if (orderData[orderId]) orderData[orderId].status = "preparing";
+    updateStats();
+
+    fetch(BACKEND + "/orders/" + orderId, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "preparing" })
+    }).catch(function(e) { console.error("Failed to update order:", e); });
+  };
 
   window.markDone = function(orderId) {
     var card = document.getElementById("card-" + orderId);
     if (card) card.classList.add("done");
 
+    if (orderData[orderId]) {
+      var order = orderData[orderId];
+      order.completedAt = new Date().toISOString();
+      completedOrders.unshift(order);
+      if (completedOrders.length > 50) completedOrders.pop();
+      renderHistory();
+    }
+
     fetch(BACKEND + "/orders/" + orderId, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: "done" })
-    }).catch(function(e) {
-      console.error("Failed to update order:", e);
-    });
+    }).catch(function(e) { console.error("Failed to update order:", e); });
 
     setTimeout(function() {
       if (card) card.remove();
+      delete orderData[orderId];
       delete knownOrderIds[orderId];
       doneCount++;
       updateStats();
     }, 400);
   };
 
+  window.toggleHistory = function() {
+    var list = document.getElementById("historyList");
+    var btn = document.getElementById("historyToggle");
+    list.classList.toggle("open");
+    btn.textContent = list.classList.contains("open") ? "Hide" : "Show";
+  };
+
+  function renderHistory() {
+    var list = document.getElementById("historyList");
+    var empty = document.getElementById("historyEmpty");
+    if (completedOrders.length === 0) { empty.style.display = "block"; return; }
+    empty.style.display = "none";
+    var existing = list.querySelectorAll(".history-item");
+    for (var i = 0; i < existing.length; i++) existing[i].remove();
+
+    for (var j = 0; j < completedOrders.length; j++) {
+      var order = completedOrders[j];
+      var itemNames = [];
+      for (var k = 0; k < order.items.length; k++) {
+        var it = order.items[k];
+        itemNames.push(it.qty + "x " + it.name + (it.size ? " (" + it.size + ")" : ""));
+      }
+      var html = '<div class="history-item">' +
+        '<div class="hi-left">' +
+          '<span class="hi-table">T' + order.tableNumber + "</span>" +
+          '<span class="hi-items">' + itemNames.join(", ") + "</span>" +
+        "</div>" +
+        '<div class="hi-right">' +
+          '<div class="hi-total">$' + order.total.toFixed(2) + "</div>" +
+          '<div class="hi-time">' + formatTime(order.completedAt || order.createdAt) + "</div>" +
+        "</div>" +
+      "</div>";
+      var temp = document.createElement("div");
+      temp.innerHTML = html;
+      list.appendChild(temp.firstChild);
+    }
+  }
+
   function updateStats() {
-    document.getElementById("activeCount").textContent = countKnown();
+    var activeC = 0;
+    var prepC = 0;
+    for (var id in knownOrderIds) {
+      if (knownOrderIds.hasOwnProperty(id)) {
+        activeC++;
+        if (orderData[id] && orderData[id].status === "preparing") prepC++;
+      }
+    }
+    document.getElementById("activeCount").textContent = activeC;
+    document.getElementById("prepCount").textContent = prepC;
     document.getElementById("doneCount").textContent = doneCount;
-    document.getElementById("emptyState").style.display =
-      countKnown() === 0 ? "flex" : "none";
+    document.getElementById("emptyState").style.display = activeC === 0 ? "flex" : "none";
   }
 
   function pollOrders() {
@@ -476,6 +669,7 @@
           var order = active[j];
           if (!knownOrderIds[order.id]) {
             knownOrderIds[order.id] = true;
+            orderData[order.id] = order;
             hasNew = true;
 
             var grid = document.getElementById("ordersGrid");
@@ -491,24 +685,40 @@
             }
 
             grid.insertBefore(card, grid.firstChild === empty ? empty : grid.firstChild);
+          } else {
+            if (orderData[order.id] && orderData[order.id].status !== order.status) {
+              orderData[order.id].status = order.status;
+              var existCard = document.getElementById("card-" + order.id);
+              if (existCard && order.status === "preparing") {
+                existCard.classList.add("preparing");
+                var badge = existCard.querySelector(".status-badge");
+                if (badge) badge.style.display = "inline-block";
+                var pb = existCard.querySelector(".btn-prep");
+                if (pb) pb.remove();
+              }
+            }
           }
         }
 
         var activeIds = {};
-        for (var k = 0; k < active.length; k++) { activeIds[active[k].id] = true; }
+        for (var k = 0; k < active.length; k++) activeIds[active[k].id] = true;
         for (var id in knownOrderIds) {
           if (knownOrderIds.hasOwnProperty(id) && !activeIds[id]) {
             var el = document.getElementById("card-" + id);
             if (el) el.remove();
+            if (orderData[id]) {
+              orderData[id].completedAt = new Date().toISOString();
+              completedOrders.unshift(orderData[id]);
+              if (completedOrders.length > 50) completedOrders.pop();
+              renderHistory();
+            }
+            delete orderData[id];
             delete knownOrderIds[id];
             doneCount++;
           }
         }
 
-        if (hasNew && !isFirstLoad) {
-          playChime();
-        }
-
+        if (hasNew && !isFirstLoad) playChime();
         isFirstLoad = false;
         document.getElementById("statusDot").className = "status-dot live";
         document.getElementById("statusText").textContent = "Live";
