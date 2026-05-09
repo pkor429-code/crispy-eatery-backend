@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Crispy Eatery - Kitchen</title>
+<title>Crispy Eatery â Kitchen</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -15,6 +15,7 @@
     overflow-x: hidden;
   }
 
+  /* ââ Header âââââââââââââââââââââââââââââââââââââââ */
   header {
     display: flex;
     align-items: center;
@@ -96,6 +97,7 @@
     align-items: center;
   }
 
+  /* ââ Order grid âââââââââââââââââââââââââââââââââââ */
   .orders-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -103,6 +105,7 @@
     padding: 20px 24px;
   }
 
+  /* ââ Order card âââââââââââââââââââââââââââââââââââ */
   .order-card {
     background: #2a2318;
     border-radius: 12px;
@@ -132,6 +135,24 @@
 
   .order-card.preparing .status-badge {
     display: inline-block;
+  }
+
+  .order-card.ready {
+    border-color: #2196f3;
+    box-shadow: 0 0 12px rgba(33, 150, 243, 0.2);
+  }
+
+  .order-card.ready .card-header {
+    background: #1a2a3d;
+  }
+
+  .order-card.ready .table-badge {
+    background: #2196f3;
+  }
+
+  .order-card.ready .status-badge {
+    display: inline-block;
+    background: #2196f3;
   }
 
   @keyframes slideIn {
@@ -178,7 +199,9 @@
     animation: pulse 1.5s infinite;
   }
 
-  .order-meta { text-align: right; }
+  .order-meta {
+    text-align: right;
+  }
 
   .order-id {
     font-size: 11px;
@@ -198,7 +221,9 @@
     margin-top: 2px;
   }
 
-  .card-body { padding: 14px 18px; }
+  .card-body {
+    padding: 14px 18px;
+  }
 
   .item-row {
     display: flex;
@@ -233,7 +258,11 @@
     line-height: 1.3;
   }
 
-  .item-variant { font-weight: 400; color: #a09080; font-size: 13px; }
+  .item-variant {
+    font-weight: 400;
+    color: #a09080;
+    font-size: 13px;
+  }
 
   .item-notes {
     font-size: 12px;
@@ -295,6 +324,23 @@
   .btn-prep:hover { background: #f57c00; transform: scale(1.02); }
   .btn-prep:active { transform: scale(0.98); }
 
+  .btn-ready {
+    background: #2196f3;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+  }
+
+  .btn-ready:hover { background: #1976d2; transform: scale(1.02); }
+  .btn-ready:active { transform: scale(0.98); }
+
   .btn-done {
     background: #4caf50;
     color: #fff;
@@ -312,6 +358,7 @@
   .btn-done:hover { background: #43a047; transform: scale(1.02); }
   .btn-done:active { transform: scale(0.98); }
 
+  /* ââ Empty state ââââââââââââââââââââââââââââââââââ */
   .empty-state {
     display: flex;
     flex-direction: column;
@@ -321,18 +368,38 @@
     color: #6a5a48;
   }
 
-  .empty-icon { font-size: 64px; margin-bottom: 16px; opacity: 0.5; }
-  .empty-text { font-size: 20px; font-family: Georgia, serif; font-style: italic; }
-  .empty-sub { font-size: 13px; margin-top: 6px; color: #5a4a38; }
+  .empty-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
 
+  .empty-text {
+    font-size: 20px;
+    font-family: Georgia, serif;
+    font-style: italic;
+  }
+
+  .empty-sub {
+    font-size: 13px;
+    margin-top: 6px;
+    color: #5a4a38;
+  }
+
+  /* ââ Flash animation for new orders âââââââââââââââ */
   @keyframes flashBorder {
     0%, 100% { border-color: #e8c477; }
     50% { border-color: #ff9800; }
   }
 
-  .order-card.flash { animation: flashBorder 0.5s ease 3; }
+  .order-card.flash {
+    animation: flashBorder 0.5s ease 3;
+  }
 
-  .history-section { padding: 0 24px 40px; }
+  /* ââ Order history section âââââââââââââââââââââââ */
+  .history-section {
+    padding: 0 24px 40px;
+  }
 
   .history-header {
     display: flex;
@@ -363,10 +430,18 @@
     transition: all 0.2s;
   }
 
-  .history-toggle:hover { border-color: #8a7a68; color: #c49a5c; }
+  .history-toggle:hover {
+    border-color: #8a7a68;
+    color: #c49a5c;
+  }
 
-  .history-list { display: none; }
-  .history-list.open { display: block; }
+  .history-list {
+    display: none;
+  }
+
+  .history-list.open {
+    display: block;
+  }
 
   .history-item {
     display: flex;
@@ -380,7 +455,11 @@
     opacity: 0.7;
   }
 
-  .history-item .hi-left { display: flex; align-items: center; gap: 12px; }
+  .history-item .hi-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
 
   .history-item .hi-table {
     background: #3d3428;
@@ -391,10 +470,25 @@
     border-radius: 6px;
   }
 
-  .history-item .hi-items { font-size: 13px; color: #8a7a68; }
-  .history-item .hi-right { text-align: right; }
-  .history-item .hi-total { font-size: 14px; color: #6a5a48; font-weight: 600; }
-  .history-item .hi-time { font-size: 11px; color: #5a4a38; }
+  .history-item .hi-items {
+    font-size: 13px;
+    color: #8a7a68;
+  }
+
+  .history-item .hi-right {
+    text-align: right;
+  }
+
+  .history-item .hi-total {
+    font-size: 14px;
+    color: #6a5a48;
+    font-weight: 600;
+  }
+
+  .history-item .hi-time {
+    font-size: 11px;
+    color: #5a4a38;
+  }
 
   .history-empty {
     text-align: center;
@@ -404,8 +498,13 @@
     font-style: italic;
   }
 
+  /* ââ Responsive âââââââââââââââââââââââââââââââââââ */
   @media (max-width: 768px) {
-    .orders-grid { grid-template-columns: 1fr; padding: 12px; gap: 12px; }
+    .orders-grid {
+      grid-template-columns: 1fr;
+      padding: 12px;
+      gap: 12px;
+    }
     header { padding: 12px 16px; flex-wrap: wrap; gap: 10px; }
     .logo span { display: block; margin-left: 0; }
     .history-section { padding: 0 12px 30px; }
@@ -428,6 +527,10 @@
       <div class="stat-label">Preparing</div>
     </div>
     <div class="stat">
+      <div class="stat-num" id="readyCount">0</div>
+      <div class="stat-label">Ready</div>
+    </div>
+    <div class="stat">
       <div class="stat-num" id="doneCount">0</div>
       <div class="stat-label">Done today</div>
     </div>
@@ -440,7 +543,7 @@
 
 <main class="orders-grid" id="ordersGrid">
   <div class="empty-state" id="emptyState">
-    <div class="empty-icon">&#127859;</div>
+    <div class="empty-icon">&#x1F373;</div>
     <div class="empty-text">No active orders</div>
     <div class="empty-sub">New orders will appear here automatically</div>
   </div>
@@ -458,16 +561,21 @@
 
 <script>
 (function() {
-  var BACKEND = window.location.origin;
-  var POLL_INTERVAL = 3000;
-  var knownOrderIds = {};
-  var orderData = {};
-  var prepCount = 0;
-  var doneCount = 0;
-  var isFirstLoad = true;
-  var completedOrders = [];
-  var AudioCtx = window.AudioContext || window.webkitAudioContext;
-  var audioCtx = null;
+  // ââ Config ââ
+  const BACKEND = window.location.origin;
+  const POLL_INTERVAL = 3000;
+
+  // ââ State ââ
+  let knownOrderIds = new Set();
+  let orderData = {};
+  let prepCount = 0;
+  let doneCount = 0;
+  let isFirstLoad = true;
+  let completedOrders = [];
+
+  // ââ Audio ââ
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  let audioCtx = null;
 
   function ensureAudio() {
     if (!audioCtx) audioCtx = new AudioCtx();
@@ -476,272 +584,367 @@
   function playChime() {
     try {
       ensureAudio();
-      var now = audioCtx.currentTime;
-      var freqs = [660, 880];
-      for (var i = 0; i < freqs.length; i++) {
-        var osc = audioCtx.createOscillator();
-        var gain = audioCtx.createGain();
-        osc.type = "sine";
-        osc.frequency.value = freqs[i];
+      const now = audioCtx.currentTime;
+      [660, 880].forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
         gain.gain.setValueAtTime(0.3, now + i * 0.15);
         gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.15 + 0.5);
         osc.connect(gain);
         gain.connect(audioCtx.destination);
         osc.start(now + i * 0.15);
         osc.stop(now + i * 0.15 + 0.6);
-      }
-    } catch(e) { console.log("Audio not available"); }
+      });
+    } catch(e) {
+      console.log('Audio not available');
+    }
   }
 
+  // ââ Elapsed time ââ
   function elapsed(iso) {
-    var diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-    if (diff < 60) return "just now";
-    var mins = Math.floor(diff / 60);
-    if (mins < 60) return mins + " min ago";
-    var hrs = Math.floor(mins / 60);
-    return hrs + "h " + (mins % 60) + "m ago";
+    const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+    if (diff < 60) return 'just now';
+    const mins = Math.floor(diff / 60);
+    if (mins < 60) return mins + ' min ago';
+    const hrs = Math.floor(mins / 60);
+    return hrs + 'h ' + (mins % 60) + 'm ago';
   }
 
   function formatTime(iso) {
-    return new Date(iso).toLocaleTimeString("en-NZ", {
-      hour: "2-digit", minute: "2-digit", hour12: true
+    return new Date(iso).toLocaleTimeString('en-NZ', {
+      hour: '2-digit', minute: '2-digit', hour12: true
     });
   }
 
-  function countKnown() {
-    var c = 0;
-    for (var k in knownOrderIds) { if (knownOrderIds.hasOwnProperty(k)) c++; }
-    return c;
-  }
-
+  // ââ Render card ââ
   function renderCard(order) {
-    var isPreparing = order.status === "preparing";
-    var itemsHtml = "";
-    for (var i = 0; i < order.items.length; i++) {
-      var item = order.items[i];
-      var variant = item.size ? '<span class="item-variant"> &middot; ' + item.size + "</span>" : "";
-      var notes = item.notes ? '<div class="item-notes">' + item.notes + "</div>" : "";
-      itemsHtml += '<div class="item-row">' +
-        '<span class="item-qty">' + item.qty + "</span>" +
-        '<div class="item-name">' + item.name + variant + notes + "</div>" +
-        '<span class="item-price">$' + (item.price * item.qty).toFixed(2) + "</span>" +
-      "</div>";
+    const isPreparing = order.status === 'preparing';
+    const isReady = order.status === 'ready';
+    const itemsHtml = order.items.map(item => {
+      const variant = item.size ? '<span class="item-variant"> &middot; ' + item.size + '</span>' : '';
+      const notes = item.notes ? '<div class="item-notes">' + item.notes + '</div>' : '';
+      return '<div class="item-row">' +
+        '<span class="item-qty">' + item.qty + '</span>' +
+        '<div class="item-name">' + item.name + variant + notes + '</div>' +
+        '<span class="item-price">$' + (item.price * item.qty).toFixed(2) + '</span>' +
+      '</div>';
+    }).join('');
+
+    const orderNotes = order.notes
+      ? '<div class="order-notes">' + order.notes + '</div>'
+      : '';
+
+    // Buttons based on status:
+    // received: PREP + DONE
+    // preparing: READY + DONE
+    // ready: DONE only
+    let buttons = '';
+    if (!isPreparing && !isReady) {
+      buttons = '<button class="btn-prep" onclick="markPreparing(\'' + order.id + '\')">PREP</button>';
+    }
+    if (isPreparing) {
+      buttons = '<button class="btn-ready" onclick="markReady(\'' + order.id + '\')">READY</button>';
+    }
+    buttons += '<button class="btn-done" onclick="markDone(\'' + order.id + '\')">DONE</button>';
+
+    // Status badge text and visibility
+    let statusClass = '';
+    let badgeText = '';
+    let badgeVisible = false;
+    if (isPreparing) {
+      statusClass = ' preparing';
+      badgeText = 'Preparing';
+      badgeVisible = true;
+    } else if (isReady) {
+      statusClass = ' ready';
+      badgeText = 'Ready';
+      badgeVisible = true;
     }
 
-    var orderNotes = order.notes ? '<div class="order-notes">' + order.notes + "</div>" : "";
-
-    var prepBtn = isPreparing ? "" :
-      '<button class="btn-prep" onclick="markPreparing(\'' + order.id + '\')">' + "PREP</button>";
-
-    return '<div class="order-card' + (isPreparing ? " preparing" : "") + '" id="card-' + order.id + '" data-id="' + order.id + '">' +
+    return '<div class="order-card' + statusClass + '" id="card-' + order.id + '" data-id="' + order.id + '">' +
       '<div class="card-header">' +
         '<div style="display:flex;align-items:center">' +
-          '<div class="table-badge">T' + order.tableNumber + "</div>" +
-          '<span class="status-badge"' + (isPreparing ? ' style="display:inline-block"' : "") + ">Preparing</span>" +
-        "</div>" +
+          '<div class="table-badge">T' + order.tableNumber + '</div>' +
+          '<span class="status-badge"' + (badgeVisible ? ' style="display:inline-block"' : '') + '>' + badgeText + '</span>' +
+        '</div>' +
         '<div class="order-meta">' +
-          '<div class="order-id">' + order.id + "</div>" +
-          '<div class="order-time">' + formatTime(order.createdAt) + "</div>" +
-          '<div class="elapsed" data-created="' + order.createdAt + '">' + elapsed(order.createdAt) + "</div>" +
-        "</div>" +
-      "</div>" +
-      '<div class="card-body">' + itemsHtml + orderNotes + "</div>" +
+          '<div class="order-id">' + order.id + '</div>' +
+          '<div class="order-time">' + formatTime(order.createdAt) + '</div>' +
+          '<div class="elapsed" data-created="' + order.createdAt + '">' + elapsed(order.createdAt) + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="card-body">' + itemsHtml + orderNotes + '</div>' +
       '<div class="card-footer">' +
-        '<div class="order-total">$' + order.total.toFixed(2) + "</div>" +
+        '<div class="order-total">$' + order.total.toFixed(2) + '</div>' +
         '<div class="btn-group">' +
-          prepBtn +
-          '<button class="btn-done" onclick="markDone(\'' + order.id + '\')">' + "DONE</button>" +
-        "</div>" +
-      "</div>" +
-    "</div>";
+          buttons +
+        '</div>' +
+      '</div>' +
+    '</div>';
   }
 
-  window.markPreparing = function(orderId) {
-    var card = document.getElementById("card-" + orderId);
+  // ââ Mark order preparing ââ
+  window.markPreparing = async function(orderId) {
+    const card = document.getElementById('card-' + orderId);
     if (card) {
-      card.classList.add("preparing");
-      var badge = card.querySelector(".status-badge");
-      if (badge) badge.style.display = "inline-block";
-      var prepBtn = card.querySelector(".btn-prep");
+      card.classList.add('preparing');
+      // Show status badge
+      const badge = card.querySelector('.status-badge');
+      if (badge) badge.style.display = 'inline-block';
+      // Hide prep button
+      const prepBtn = card.querySelector('.btn-prep');
       if (prepBtn) prepBtn.remove();
     }
-    if (orderData[orderId]) orderData[orderId].status = "preparing";
+
+    // Update local data
+    if (orderData[orderId]) orderData[orderId].status = 'preparing';
     updateStats();
 
-    fetch(BACKEND + "/orders/" + orderId, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: "preparing" })
-    }).catch(function(e) { console.error("Failed to update order:", e); });
+    try {
+      await fetch(BACKEND + '/orders/' + orderId, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'preparing' })
+      });
+    } catch(e) {
+      console.error('Failed to update order:', e);
+    }
   };
 
-  window.markDone = function(orderId) {
-    var card = document.getElementById("card-" + orderId);
-    if (card) card.classList.add("done");
+  // ââ Mark order ready (kitchen done) ââ
+  window.markReady = async function(orderId) {
+    const card = document.getElementById('card-' + orderId);
+    if (card) {
+      card.classList.remove('preparing');
+      card.classList.add('ready');
+      // Update status badge
+      const badge = card.querySelector('.status-badge');
+      if (badge) { badge.style.display = 'inline-block'; badge.textContent = 'Ready'; badge.style.background = '#2196f3'; }
+      // Replace READY button with nothing (only DONE remains)
+      const readyBtn = card.querySelector('.btn-ready');
+      if (readyBtn) readyBtn.remove();
+    }
 
+    if (orderData[orderId]) orderData[orderId].status = 'ready';
+    updateStats();
+
+    try {
+      await fetch(BACKEND + '/orders/' + orderId, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'ready' })
+      });
+    } catch(e) {
+      console.error('Failed to update order:', e);
+    }
+  };
+
+  // ââ Mark order done ââ
+  window.markDone = async function(orderId) {
+    const card = document.getElementById('card-' + orderId);
+    if (card) card.classList.add('done');
+
+    // Save to history before removing
     if (orderData[orderId]) {
-      var order = orderData[orderId];
+      const order = orderData[orderId];
       order.completedAt = new Date().toISOString();
       completedOrders.unshift(order);
       if (completedOrders.length > 50) completedOrders.pop();
       renderHistory();
     }
 
-    fetch(BACKEND + "/orders/" + orderId, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: "done" })
-    }).catch(function(e) { console.error("Failed to update order:", e); });
+    try {
+      await fetch(BACKEND + '/orders/' + orderId, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'done' })
+      });
+    } catch(e) {
+      console.error('Failed to update order:', e);
+    }
 
-    setTimeout(function() {
+    setTimeout(() => {
       if (card) card.remove();
       delete orderData[orderId];
-      delete knownOrderIds[orderId];
+      knownOrderIds.delete(orderId);
       doneCount++;
       updateStats();
     }, 400);
   };
 
+  // ââ Toggle history ââ
   window.toggleHistory = function() {
-    var list = document.getElementById("historyList");
-    var btn = document.getElementById("historyToggle");
-    list.classList.toggle("open");
-    btn.textContent = list.classList.contains("open") ? "Hide" : "Show";
+    const list = document.getElementById('historyList');
+    const btn = document.getElementById('historyToggle');
+    list.classList.toggle('open');
+    btn.textContent = list.classList.contains('open') ? 'Hide' : 'Show';
   };
 
+  // ââ Render history ââ
   function renderHistory() {
-    var list = document.getElementById("historyList");
-    var empty = document.getElementById("historyEmpty");
-    if (completedOrders.length === 0) { empty.style.display = "block"; return; }
-    empty.style.display = "none";
-    var existing = list.querySelectorAll(".history-item");
-    for (var i = 0; i < existing.length; i++) existing[i].remove();
+    const list = document.getElementById('historyList');
+    const empty = document.getElementById('historyEmpty');
 
-    for (var j = 0; j < completedOrders.length; j++) {
-      var order = completedOrders[j];
-      var itemNames = [];
-      for (var k = 0; k < order.items.length; k++) {
-        var it = order.items[k];
-        itemNames.push(it.qty + "x " + it.name + (it.size ? " (" + it.size + ")" : ""));
-      }
-      var html = '<div class="history-item">' +
+    if (completedOrders.length === 0) {
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+
+    // Remove old history items (keep the empty div)
+    const existing = list.querySelectorAll('.history-item');
+    existing.forEach(el => el.remove());
+
+    completedOrders.forEach(order => {
+      const itemNames = order.items.map(i =>
+        i.qty + 'x ' + i.name + (i.size ? ' (' + i.size + ')' : '')
+      ).join(', ');
+
+      const html = '<div class="history-item">' +
         '<div class="hi-left">' +
-          '<span class="hi-table">T' + order.tableNumber + "</span>" +
-          '<span class="hi-items">' + itemNames.join(", ") + "</span>" +
-        "</div>" +
+          '<span class="hi-table">T' + order.tableNumber + '</span>' +
+          '<span class="hi-items">' + itemNames + '</span>' +
+        '</div>' +
         '<div class="hi-right">' +
-          '<div class="hi-total">$' + order.total.toFixed(2) + "</div>" +
-          '<div class="hi-time">' + formatTime(order.completedAt || order.createdAt) + "</div>" +
-        "</div>" +
-      "</div>";
-      var temp = document.createElement("div");
+          '<div class="hi-total">$' + order.total.toFixed(2) + '</div>' +
+          '<div class="hi-time">' + formatTime(order.completedAt || order.createdAt) + '</div>' +
+        '</div>' +
+      '</div>';
+
+      const temp = document.createElement('div');
       temp.innerHTML = html;
       list.appendChild(temp.firstChild);
-    }
+    });
   }
 
+  // ââ Update stats ââ
   function updateStats() {
-    var activeC = 0;
-    var prepC = 0;
-    for (var id in knownOrderIds) {
-      if (knownOrderIds.hasOwnProperty(id)) {
-        activeC++;
-        if (orderData[id] && orderData[id].status === "preparing") prepC++;
+    let activeC = 0;
+    let prepC = 0;
+    let readyC = 0;
+    knownOrderIds.forEach(id => {
+      if (orderData[id]) {
+        if (orderData[id].status === 'preparing') prepC++;
+        if (orderData[id].status === 'ready') readyC++;
       }
-    }
-    document.getElementById("activeCount").textContent = activeC;
-    document.getElementById("prepCount").textContent = prepC;
-    document.getElementById("doneCount").textContent = doneCount;
-    document.getElementById("emptyState").style.display = activeC === 0 ? "flex" : "none";
+      activeC++;
+    });
+    document.getElementById('activeCount').textContent = activeC;
+    document.getElementById('prepCount').textContent = prepC;
+    document.getElementById('readyCount').textContent = readyC;
+    document.getElementById('doneCount').textContent = doneCount;
+    document.getElementById('emptyState').style.display =
+      activeC === 0 ? 'flex' : 'none';
   }
 
-  function pollOrders() {
-    fetch(BACKEND + "/orders")
-      .then(function(resp) { return resp.json(); })
-      .then(function(data) {
-        var active = [];
-        for (var i = 0; i < data.orders.length; i++) {
-          if (data.orders[i].status !== "done") active.push(data.orders[i]);
-        }
-        var hasNew = false;
+  // ââ Poll orders ââ
+  async function pollOrders() {
+    try {
+      const resp = await fetch(BACKEND + '/orders');
+      const data = await resp.json();
 
-        for (var j = 0; j < active.length; j++) {
-          var order = active[j];
-          if (!knownOrderIds[order.id]) {
-            knownOrderIds[order.id] = true;
-            orderData[order.id] = order;
-            hasNew = true;
+      // Filter to active orders only
+      const active = data.orders.filter(o => o.status !== 'done');
+      let hasNew = false;
 
-            var grid = document.getElementById("ordersGrid");
-            var empty = document.getElementById("emptyState");
-            var temp = document.createElement("div");
-            temp.innerHTML = renderCard(order);
-            var card = temp.firstChild;
+      active.forEach(order => {
+        if (!knownOrderIds.has(order.id)) {
+          knownOrderIds.add(order.id);
+          orderData[order.id] = order;
+          hasNew = true;
 
-            if (!isFirstLoad) {
-              card.classList.add("new-arrival", "flash");
-              setTimeout((function(c) { return function() { c.classList.remove("flash"); }; })(card), 1500);
-              setTimeout((function(c) { return function() { c.classList.remove("new-arrival"); }; })(card), 5000);
-            }
+          const grid = document.getElementById('ordersGrid');
+          const empty = document.getElementById('emptyState');
 
-            grid.insertBefore(card, grid.firstChild === empty ? empty : grid.firstChild);
-          } else {
-            if (orderData[order.id] && orderData[order.id].status !== order.status) {
-              orderData[order.id].status = order.status;
-              var existCard = document.getElementById("card-" + order.id);
-              if (existCard && order.status === "preparing") {
-                existCard.classList.add("preparing");
-                var badge = existCard.querySelector(".status-badge");
-                if (badge) badge.style.display = "inline-block";
-                var pb = existCard.querySelector(".btn-prep");
-                if (pb) pb.remove();
+          const temp = document.createElement('div');
+          temp.innerHTML = renderCard(order);
+          const card = temp.firstChild;
+
+          if (!isFirstLoad) {
+            card.classList.add('new-arrival', 'flash');
+            setTimeout(() => card.classList.remove('flash'), 1500);
+            setTimeout(() => card.classList.remove('new-arrival'), 5000);
+          }
+
+          grid.insertBefore(card, grid.firstChild === empty ? empty : grid.firstChild);
+        } else {
+          // Update status if changed server-side (e.g. another device marked preparing/ready)
+          if (orderData[order.id] && orderData[order.id].status !== order.status) {
+            orderData[order.id].status = order.status;
+            const card = document.getElementById('card-' + order.id);
+            if (card) {
+              if (order.status === 'preparing') {
+                card.classList.remove('ready');
+                card.classList.add('preparing');
+                const badge = card.querySelector('.status-badge');
+                if (badge) { badge.style.display = 'inline-block'; badge.textContent = 'Preparing'; badge.style.background = '#ff9800'; }
+                const prepBtn = card.querySelector('.btn-prep');
+                if (prepBtn) prepBtn.remove();
+              } else if (order.status === 'ready') {
+                card.classList.remove('preparing');
+                card.classList.add('ready');
+                const badge = card.querySelector('.status-badge');
+                if (badge) { badge.style.display = 'inline-block'; badge.textContent = 'Ready'; badge.style.background = '#2196f3'; }
+                const readyBtn = card.querySelector('.btn-ready');
+                if (readyBtn) readyBtn.remove();
+                const prepBtn = card.querySelector('.btn-prep');
+                if (prepBtn) prepBtn.remove();
               }
             }
           }
         }
-
-        var activeIds = {};
-        for (var k = 0; k < active.length; k++) activeIds[active[k].id] = true;
-        for (var id in knownOrderIds) {
-          if (knownOrderIds.hasOwnProperty(id) && !activeIds[id]) {
-            var el = document.getElementById("card-" + id);
-            if (el) el.remove();
-            if (orderData[id]) {
-              orderData[id].completedAt = new Date().toISOString();
-              completedOrders.unshift(orderData[id]);
-              if (completedOrders.length > 50) completedOrders.pop();
-              renderHistory();
-            }
-            delete orderData[id];
-            delete knownOrderIds[id];
-            doneCount++;
-          }
-        }
-
-        if (hasNew && !isFirstLoad) playChime();
-        isFirstLoad = false;
-        document.getElementById("statusDot").className = "status-dot live";
-        document.getElementById("statusText").textContent = "Live";
-        updateStats();
-      })
-      .catch(function(e) {
-        console.error("Poll error:", e);
-        document.getElementById("statusDot").className = "status-dot error";
-        document.getElementById("statusText").textContent = "Offline";
       });
-  }
 
-  function updateElapsed() {
-    var els = document.querySelectorAll(".elapsed[data-created]");
-    for (var i = 0; i < els.length; i++) {
-      els[i].textContent = elapsed(els[i].dataset.created);
+      // Remove cards for orders that disappeared server-side
+      const activeIds = new Set(active.map(o => o.id));
+      knownOrderIds.forEach(id => {
+        if (!activeIds.has(id)) {
+          const card = document.getElementById('card-' + id);
+          if (card) card.remove();
+          // Add to history if we have data
+          if (orderData[id]) {
+            orderData[id].completedAt = new Date().toISOString();
+            completedOrders.unshift(orderData[id]);
+            if (completedOrders.length > 50) completedOrders.pop();
+            renderHistory();
+          }
+          delete orderData[id];
+          knownOrderIds.delete(id);
+          doneCount++;
+        }
+      });
+
+      if (hasNew && !isFirstLoad) {
+        playChime();
+      }
+
+      isFirstLoad = false;
+
+      document.getElementById('statusDot').className = 'status-dot live';
+      document.getElementById('statusText').textContent = 'Live';
+
+      updateStats();
+    } catch(e) {
+      console.error('Poll error:', e);
+      document.getElementById('statusDot').className = 'status-dot error';
+      document.getElementById('statusText').textContent = 'Offline';
     }
   }
 
-  document.addEventListener("click", function unlock() {
+  // ââ Update elapsed times ââ
+  function updateElapsed() {
+    document.querySelectorAll('.elapsed[data-created]').forEach(el => {
+      el.textContent = elapsed(el.dataset.created);
+    });
+  }
+
+  // ââ Init ââ
+  document.addEventListener('click', function unlock() {
     ensureAudio();
-    if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
-    document.removeEventListener("click", unlock);
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    document.removeEventListener('click', unlock);
   }, { once: true });
 
   pollOrders();
