@@ -15,7 +15,7 @@
     overflow-x: hidden;
   }
 
-  /* ── Header ─────────────────────────────────── */
+  /* ── Header ─────────────────────────────────────── */
   header {
     display: flex;
     align-items: center;
@@ -1340,19 +1340,84 @@
               // Clear all status classes first
               card.classList.remove('preparing', 'ready', 'picked_up');
 
+              // Clean up any existing per-item UI before setting up new status
+              card.querySelectorAll('.item-row').forEach(function(row) {
+                row.classList.remove('cookable', 'cooked', 'tappable', 'picked');
+                row.onclick = null;
+                const check = row.querySelector('.cook-check');
+                if (check) check.remove();
+              });
+              const oldCookHint = card.querySelector('.cook-hint');
+              if (oldCookHint) oldCookHint.remove();
+              const oldCookProg = card.querySelector('.cook-progress');
+              if (oldCookProg) oldCookProg.remove();
+              const oldPickHint = card.querySelector('.pickup-hint');
+              if (oldPickHint) oldPickHint.remove();
+              const oldPickProg = card.querySelector('.pickup-progress');
+              if (oldPickProg) oldPickProg.remove();
+
               if (order.status === 'preparing') {
                 card.classList.add('preparing');
                 const badge = card.querySelector('.status-badge');
                 if (badge) { badge.style.display = 'inline-block'; badge.textContent = 'Preparing'; badge.style.background = '#ff9800'; }
-                // Replace buttons: show READY only
+                // Replace buttons with READY (ALL)
                 const btnGroup = card.querySelector('.btn-group');
-                if (btnGroup) btnGroup.innerHTML = '<button class="btn-ready" onclick="markReady(\'' + order.id + '\')">READY</button>';
+                if (btnGroup) {
+                  btnGroup.innerHTML = '';
+                  const readyBtn = document.createElement('button');
+                  readyBtn.className = 'btn-ready';
+                  readyBtn.textContent = 'READY (ALL)';
+                  readyBtn.onclick = function() { markReady(order.id); };
+                  btnGroup.appendChild(readyBtn);
+                }
+                // Set up per-item cooking UI
+                const items = card.querySelectorAll('.item-row');
+                const totalItems = items.length;
+                items.forEach(function(row, idx) {
+                  row.classList.add('cookable');
+                  row.setAttribute('data-idx', idx);
+                  const check = document.createElement('span');
+                  check.className = 'cook-check';
+                  check.textContent = '✓';
+                  row.appendChild(check);
+                  row.onclick = function() { toggleItemCooked(order.id, idx); };
+                });
+                const cardBody = card.querySelector('.card-body');
+                if (cardBody) {
+                  const hint = document.createElement('div');
+                  hint.className = 'cook-hint';
+                  hint.textContent = 'Tap each item when cooked';
+                  cardBody.appendChild(hint);
+                  const prog = document.createElement('div');
+                  prog.className = 'cook-progress';
+                  prog.innerHTML = '<span>0/' + totalItems + '</span><div class="prog-bar"><div class="prog-fill" style="width:0%"></div></div>';
+                  cardBody.appendChild(prog);
+                }
               } else if (order.status === 'ready') {
                 card.classList.add('ready');
                 const badge = card.querySelector('.status-badge');
                 if (badge) { badge.style.display = 'inline-block'; badge.textContent = 'Ready'; badge.style.background = '#2196f3'; }
                 const btnGroup = card.querySelector('.btn-group');
                 if (btnGroup) btnGroup.innerHTML = '<button class="btn-pickup" onclick="markPickedUp(\'' + order.id + '\')">PICKED UP</button>';
+                // Set up per-item pickup UI
+                const items = card.querySelectorAll('.item-row');
+                const totalItems = items.length;
+                items.forEach(function(row, idx) {
+                  row.classList.add('tappable');
+                  row.setAttribute('data-idx', idx);
+                  row.onclick = function() { toggleItemPickup(order.id, idx); };
+                });
+                const cardBody = card.querySelector('.card-body');
+                if (cardBody) {
+                  const hint = document.createElement('div');
+                  hint.className = 'pickup-hint';
+                  hint.textContent = 'Tap each item as staff picks up';
+                  cardBody.appendChild(hint);
+                  const prog = document.createElement('div');
+                  prog.className = 'pickup-progress';
+                  prog.innerHTML = '<span>0/' + totalItems + '</span><div class="prog-bar"><div class="prog-fill" style="width:0%"></div></div>';
+                  cardBody.appendChild(prog);
+                }
               } else if (order.status === 'picked_up') {
                 card.classList.add('picked_up');
                 const badge = card.querySelector('.status-badge');
