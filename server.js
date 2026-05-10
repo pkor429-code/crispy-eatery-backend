@@ -1,4 +1,4 @@
- require("dotenv").config();
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
@@ -7,11 +7,11 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// ── Middleware ──────────────────────────────────────────────
+// ââ Middleware ââââââââââââââââââââââââââââââââââââââââââââââ
 app.use(cors());
 app.use(express.json());
 
-// ── Order storage ──────────────────────────────────────────
+// ââ Order storage ââââââââââââââââââââââââââââââââââââââââââ
 const ORDERS_FILE = path.join(__dirname, "orders.json");
 
 function loadOrders() {
@@ -33,7 +33,7 @@ function saveOrder(order) {
 }
 
 function nextOrderId() {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = new Date().toISOString().slice(0, 10); // "2026-05-10"
   const orders = loadOrders();
   const todayOrders = orders.filter(
     (o) => o.createdAt && o.createdAt.startsWith(today)
@@ -42,14 +42,14 @@ function nextOrderId() {
   return `#${String(num).padStart(3, "0")}`;
 }
 
-// ── Health check ───────────────────────────────────────────
+// ââ Health check âââââââââââââââââââââââââââââââââââââââââââ
 app.get("/", (_req, res) => {
   const orders = loadOrders();
   res.json({
     status: "ok",
     mode: "local",
     totalOrders: orders.length,
-    note: "Doshii integration pending — orders stored locally",
+    note: "Doshii integration pending â orders stored locally",
   });
 });
 
@@ -61,7 +61,7 @@ app.get("/health", (_req, res) => {
   });
 });
 
-// ── POST /order — receive order from QR menu ──────────────
+// ââ POST /order â receive order from QR menu ââââââââââââââ
 app.post("/order", (req, res) => {
   try {
     const { tableNumber, items, notes, guestCount } = req.body;
@@ -95,24 +95,24 @@ app.post("/order", (req, res) => {
     const orderCount = saveOrder(order);
 
     // Log to console (visible in Terminal)
-    console.log(`\n${"═".repeat(50)}`);
-    console.log(`🔔 NEW ORDER #${order.id}`);
+    console.log(`\n${"â".repeat(50)}`);
+    console.log(`ð NEW ORDER #${order.id}`);
     console.log(`   Table: ${order.tableNumber} | Guests: ${order.guestCount}`);
     console.log(`   Items:`);
     order.items.forEach((item) => {
       console.log(
-        `     • ${item.qty}x ${item.name}${item.size ? ` (${item.size})` : ""} — $${item.price.toFixed(2)}${item.notes ? ` [${item.notes}]` : ""}`
+        `     â¢ ${item.qty}x ${item.name}${item.size ? ` (${item.size})` : ""} â $${item.price.toFixed(2)}${item.notes ? ` [${item.notes}]` : ""}`
       );
     });
     console.log(`   Total: $${order.total.toFixed(2)}`);
     if (order.notes) console.log(`   Notes: ${order.notes}`);
     console.log(`   Time: ${order.createdAt}`);
-    console.log(`${"═".repeat(50)}\n`);
+    console.log(`${"â".repeat(50)}\n`);
 
     res.json({
       success: true,
       orderId: order.id,
-      message: `Order received — Table ${order.tableNumber}`,
+      message: `Order received â Table ${order.tableNumber}`,
       total: order.total,
     });
   } catch (err) {
@@ -124,27 +124,34 @@ app.post("/order", (req, res) => {
   }
 });
 
-// ── Serve kitchen dashboard ───────────────────────────────
+// ââ Serve kitchen dashboard âââââââââââââââââââââââââââââââ
 app.use("/dashboard", express.static(path.join(__dirname, "public")));
 
-// ── GET /orders — view all orders (staff dashboard) ───────
+// ââ GET /orders â view all orders (staff dashboard) âââââââ
 app.get("/orders", (req, res) => {
   let orders = loadOrders();
+  // Filter by status (default: show active orders only)
   const status = req.query.status;
   if (status) {
     orders = orders.filter((o) => o.status === status);
   }
+  // Filter by table number (for QR menu "add to order")
+  const table = req.query.table;
+  if (table) {
+    orders = orders.filter((o) => String(o.tableNumber) === String(table));
+  }
+  // Filter orders created after a timestamp (for polling)
   const since = req.query.since;
   if (since) {
     orders = orders.filter((o) => new Date(o.createdAt) > new Date(since));
   }
   res.json({
     count: orders.length,
-    orders: orders.reverse(),
+    orders: orders.reverse(), // newest first
   });
 });
 
-// ── GET /orders/:id — view single order ───────────────────
+// ââ GET /orders/:id â view single order âââââââââââââââââââ
 app.get("/orders/:id", (req, res) => {
   const orders = loadOrders();
   const order = orders.find((o) => o.id === req.params.id);
@@ -152,7 +159,58 @@ app.get("/orders/:id", (req, res) => {
   res.json(order);
 });
 
-// ── PATCH /orders/:id — update order status ──────────────
+// ââ POST /orders/:id/add-items â add items to existing order
+app.post("/orders/:id/add-items", (req, res) => {
+  const orders = loadOrders();
+  const idx = orders.findIndex((o) => o.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: "Order not found" });
+
+  const { items } = req.body;
+  if (!items || items.length === 0) {
+    return res.status(400).json({ error: "No items to add" });
+  }
+
+  // Append new items
+  const newItems = items.map((item) => ({
+    name: item.name,
+    size: item.size || "",
+    qty: item.qty || item.quantity || 1,
+    price: item.price || 0,
+    notes: item.notes || "",
+  }));
+  orders[idx].items = [...orders[idx].items, ...newItems];
+
+  // Recalculate total
+  orders[idx].total = orders[idx].items.reduce(
+    (sum, i) => sum + (i.price || 0) * (i.qty || 1),
+    0
+  );
+
+  // Reset status to received so kitchen sees the update
+  orders[idx].status = "received";
+  orders[idx].updatedAt = new Date().toISOString();
+  fs.writeFileSync(ORDERS_FILE, JSON.stringify(orders, null, 2));
+
+  // Log to console
+  console.log(`\n${"â".repeat(50)}`);
+  console.log(`â ITEMS ADDED to ${orders[idx].id} (Table ${orders[idx].tableNumber})`);
+  newItems.forEach((item) => {
+    console.log(
+      `     â¢ ${item.qty}x ${item.name}${item.size ? ` (${item.size})` : ""} â $${item.price.toFixed(2)}${item.notes ? ` [${item.notes}]` : ""}`
+    );
+  });
+  console.log(`   New total: $${orders[idx].total.toFixed(2)}`);
+  console.log(`${"â".repeat(50)}\n`);
+
+  res.json({
+    success: true,
+    orderId: orders[idx].id,
+    message: `Items added to order ${orders[idx].id}`,
+    total: orders[idx].total,
+  });
+});
+
+// ââ PATCH /orders/:id â update order status ââââââââââââââ
 app.patch("/orders/:id", (req, res) => {
   const orders = loadOrders();
   const idx = orders.findIndex((o) => o.id === req.params.id);
@@ -169,27 +227,27 @@ app.patch("/orders/:id", (req, res) => {
   orders[idx].updatedAt = new Date().toISOString();
   fs.writeFileSync(ORDERS_FILE, JSON.stringify(orders, null, 2));
 
-  console.log(`[orders] ${orders[idx].id} → ${status}`);
+  console.log(`[orders] ${orders[idx].id} â ${status}`);
   res.json({ success: true, order: orders[idx] });
 });
 
-// ── DELETE /orders — clear all orders (dev only) ──────────
+// ââ DELETE /orders â clear all orders (dev only) ââââââââââ
 app.delete("/orders", (_req, res) => {
   fs.writeFileSync(ORDERS_FILE, "[]");
   console.log("[orders] All orders cleared");
   res.json({ success: true, message: "All orders cleared" });
 });
 
-// ── Start server ───────────────────────────────────────────
+// ââ Start server âââââââââââââââââââââââââââââââââââââââââââ
 app.listen(PORT, () => {
   const orders = loadOrders();
-  console.log(`\n🍳 Crispy Eatery backend running on http://localhost:${PORT}`);
+  console.log(`\nð³ Crispy Eatery backend running on http://localhost:${PORT}`);
   console.log(`   Mode    : Local order storage (Doshii integration pending)`);
   console.log(`   Orders  : ${orders.length} saved`);
   console.log(`\n   Endpoints:`);
-  console.log(`     POST  /order       — receive order from QR menu`);
-  console.log(`     GET   /orders      — view all orders`);
-  console.log(`     PATCH /orders/:id  — update order status`);
-  console.log(`     GET   /dashboard   — kitchen dashboard`);
-  console.log(`     GET   /health      — health check\n`);
+  console.log(`     POST  /order       â receive order from QR menu`);
+  console.log(`     GET   /orders      â view all orders`);
+  console.log(`     PATCH /orders/:id  â update order status`);
+  console.log(`     GET   /dashboard   â kitchen dashboard`);
+  console.log(`     GET   /health      â health check\n`);
 });
