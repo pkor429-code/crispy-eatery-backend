@@ -1025,7 +1025,7 @@
     updateStats();
 
     try {
-      await fetch(BACKEND + '/orders/' + orderId, {
+      await fetch(BACKEND + '/orders/' + encodeURIComponent(orderId), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'preparing' })
@@ -1093,7 +1093,7 @@
     updateStats();
 
     try {
-      await fetch(BACKEND + '/orders/' + orderId, {
+      await fetch(BACKEND + '/orders/' + encodeURIComponent(orderId), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'ready' })
@@ -1131,7 +1131,7 @@
     if (progText) progText.textContent = cookedCount + '/' + totalItems;
 
     // Sync to server
-    fetch(BACKEND + '/orders/' + orderId, {
+    fetch(BACKEND + '/orders/' + encodeURIComponent(orderId), {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: 'preparing', cookedItems: order.cookedItems })
@@ -1173,7 +1173,7 @@
     if (progText) progText.textContent = pickedCount + '/' + totalItems;
 
     // Sync to server
-    fetch(BACKEND + '/orders/' + orderId, {
+    fetch(BACKEND + '/orders/' + encodeURIComponent(orderId), {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: 'ready', pickedItems: order.pickedItems })
@@ -1219,7 +1219,7 @@
     updateStats();
 
     try {
-      await fetch(BACKEND + '/orders/' + orderId, {
+      await fetch(BACKEND + '/orders/' + encodeURIComponent(orderId), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'picked_up' })
@@ -1244,7 +1244,7 @@
     }
 
     try {
-      await fetch(BACKEND + '/orders/' + orderId, {
+      await fetch(BACKEND + '/orders/' + encodeURIComponent(orderId), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'done' })
@@ -1277,7 +1277,7 @@
     }
 
     try {
-      await fetch(BACKEND + '/orders/' + orderId, {
+      await fetch(BACKEND + '/orders/' + encodeURIComponent(orderId), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'done' })
