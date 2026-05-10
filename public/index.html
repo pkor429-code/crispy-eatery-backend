@@ -965,7 +965,7 @@
     if (!isPreparing && !isReady && !isPickedUp) {
       buttons = '<button class="btn-prep" onclick="markPreparing(\'' + order.id + '\')">PREP</button>';
     } else if (isPreparing) {
-      buttons = '<button class="btn-ready" onclick="markReady(\'' + order.id + '\')">READY</button>';
+      buttons = '<button class="btn-ready" onclick="markSectionDone(\'' + order.id + '\')">READY</button>';
     } else if (isReady) {
       buttons = '<button class="btn-pickup" onclick="markPickedUp(\'' + order.id + '\')">PICKED UP</button>';
     } else if (isPickedUp) {
@@ -1012,6 +1012,41 @@
     '</div>';
   }
 
+  // ── Mark section done (filter-aware READY) ──
+  window.markSectionDone = function(orderId) {
+    var order = orderData[orderId];
+    if (!order || order.status !== 'preparing') return;
+    if (currentFilter === 'all') { markReady(orderId); return; }
+    if (!order.cookedItems) order.cookedItems = {};
+    order.items.forEach(function(item, idx) {
+      var itemIsDrink = isDrink(item.name);
+      if ((currentFilter === 'barista' && itemIsDrink) || (currentFilter === 'kitchen' && !itemIsDrink)) {
+        order.cookedItems[idx] = true;
+      }
+    });
+    var card = document.getElementById('card-' + orderId);
+    if (card) {
+      var rows = card.querySelectorAll('.item-row');
+      var totalItems = order.items.length;
+      var cookedCount = 0;
+      rows.forEach(function(row, idx) {
+        if (order.cookedItems[idx]) { row.classList.add('cooked'); cookedCount++; }
+      });
+      var pct = Math.round((cookedCount / totalItems) * 100);
+      var progFill = card.querySelector('.cook-progress .prog-fill');
+      if (progFill) progFill.style.width = pct + '%';
+      var progText = card.querySelector('.cook-progress span');
+      if (progText) progText.textContent = cookedCount + '/' + totalItems;
+    }
+    fetch(BACKEND + '/orders/' + encodeURIComponent(orderId), {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'preparing', cookedItems: order.cookedItems })
+    }).catch(function(e) { console.error('Failed to sync cooked state:', e); });
+    var allCooked = order.items.every(function(item, idx) { return order.cookedItems[idx]; });
+    if (allCooked) { setTimeout(function() { markReady(orderId); }, 500); }
+  };
+
   // ── Mark order preparing ──
   window.markPreparing = async function(orderId) {
     const card = document.getElementById('card-' + orderId);
@@ -1026,8 +1061,9 @@
         btnGroup.innerHTML = '';
         const readyBtn = document.createElement('button');
         readyBtn.className = 'btn-ready';
-        readyBtn.textContent = 'READY (ALL)';
-        readyBtn.onclick = function() { markReady(orderId); };
+        var labels = { all: 'READY (ALL)', kitchen: 'KITCHEN DONE', barista: 'BARISTA DONE' };
+        readyBtn.textContent = labels[currentFilter] || 'READY (ALL)';
+        readyBtn.onclick = function() { markSectionDone(orderId); };
         btnGroup.appendChild(readyBtn);
       }
       // Make items tappable for per-dish cooking
@@ -1469,8 +1505,9 @@
                 btnGroup.innerHTML = '';
                 var readyBtn = document.createElement('button');
                 readyBtn.className = 'btn-ready';
-                readyBtn.textContent = 'READY (ALL)';
-                readyBtn.onclick = function() { markReady(order.id); };
+                var labels = { all: 'READY (ALL)', kitchen: 'KITCHEN DONE', barista: 'BARISTA DONE' };
+                readyBtn.textContent = labels[currentFilter] || 'READY (ALL)';
+                readyBtn.onclick = function() { markSectionDone(order.id); };
                 btnGroup.appendChild(readyBtn);
               }
               var items = card.querySelectorAll('.item-row');
